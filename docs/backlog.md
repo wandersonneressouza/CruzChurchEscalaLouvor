@@ -36,18 +36,32 @@
 - **Validação de Build:** `npm run build` executado com sucesso (zero erros).
 - **Servidor Dev:** Rodando em `http://localhost:3000/`.
 
+### [FEAT-002] Tela Agenda e Escalas
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/pages/Agenda/Agenda.jsx` (Tela monobloco com suporte a abas interativas 'calendario' e 'escalas')
+  - `src/pages/Agenda/Agenda.css` (CSS puro 100% escopado sob `#tela-agenda`)
+  - `src/App.jsx` (Adição da rota `/agenda`)
+  - `src/pages/Inicio/Inicio.jsx` (Links diretos para `/agenda` a partir do botão 'Ver minha escala' e card 'Confirmações')
+- **Identificador de Escopo CSS:** `#tela-agenda`
+- **Funcionalidades da Tela:**
+  - Seletor segmented control em pill: `[ Calendário ]` / `[ Escalas ]`.
+  - Navegador mensal (`Outubro 2026`) com grade de dias, seleção ativa (`26`) e dots de status (`green` e `orange`).
+  - Lista de próximos compromissos (Cultos e Ensaios com data badge lateral, horários e locais).
+  - Card de alerta de convocações pendentes com atalho para a aba de escalas.
+  - Aba de Escalas detalhada por áreas ministeriais (Vocal, Instrumentistas, Som & Mídia), badges de confirmação e ações de confirmação/substituição.
+  - Barra de navegação inferior ativa no item Agenda.
+- **Validação de Build:** `npm run build` executado com sucesso (zero erros).
+
 ---
 
 ## 3. Próximas Telas e Features Planejadas (Etapa 1 - Front-end)
 
-1. **[FEAT-002] Tela Agenda e Escalas**
-   - **ID CSS Alvo:** `#tela-agenda`
-   - **Elementos:** Seletor de abas [Calendário] / [Escalas], grade de calendário mensal com indicadores visuais de eventos, lista de próximos compromissos e card de convocação/alerta de escalas pendentes.
-
-2. **[FEAT-003] Tela de Repertório**
+1. **[FEAT-003] Tela de Repertório**
    - **ID CSS Alvo:** `#tela-repertorio`
    - **Elementos:** Filtros de categoria ([Todas], [Culto], [Tema], [Minhas listas]), campo de busca, lista de louvores com tags, tom, BPM e Floating Action Button (FAB) para cadastrar música.
 
-3. **[FEAT-004] Tela Devocional e Mais**
+2. **[FEAT-004] Tela Devocional e Mais**
    - **ID CSS Alvo:** `#tela-devocional`, `#tela-mais`
-   - **Elementos:** Leitura devocional e menu expandido de módulos ministeriais.
+   - **Elementos:** Leitura devocional detalhada e menu expandido de módulos ministeriais.

@@ -99,7 +99,7 @@ function Inicio() {
             </p>
           </div>
 
-          <button className="btn-ver-escala">
+          <Link to="/agenda" className="btn-ver-escala">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <polyline points="9 11 12 14 22 4" />
@@ -108,7 +108,7 @@ function Inicio() {
             <svg className="btn-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6" />
             </svg>
-          </button>
+          </Link>
         </section>
 
         {/* Linha de Cards Rápidos (Ensaio e Confirmações) */}
@@ -133,7 +133,7 @@ function Inicio() {
             </div>
           </div>
 
-          <div className="mini-card card-confirmacoes">
+          <Link to="/agenda" className="mini-card card-confirmacoes">
             <div className="mini-card-icon-wrapper light-blue">
               <svg viewBox="0 0 24 24" fill="none" stroke="#1e5ec8" strokeWidth="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -151,7 +151,7 @@ function Inicio() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
-          </div>
+          </Link>
         </section>
 
         {/* Seção: Avisos da Liderança */}

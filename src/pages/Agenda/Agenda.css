@@ -1,0 +1,545 @@
+/* AGENDA.CSS — Estilos da Tela de Agenda e Escalas (Escopado por ID #tela-agenda) */
+
+#tela-agenda {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Status Bar Mobile */
+#tela-agenda .status-bar {
+  height: 40px;
+  padding: 10px 22px 0 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+#tela-agenda .status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#tela-agenda .status-icons svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Conteúdo com Scroll */
+#tela-agenda .agenda-scroll-content {
+  flex: 1;
+  padding: 12px 18px 84px 18px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Header */
+#tela-agenda .agenda-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+#tela-agenda .btn-voltar,
+#tela-agenda .btn-add-evento {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+  transition: background-color 0.15s ease;
+}
+
+#tela-agenda .btn-voltar:hover,
+#tela-agenda .btn-add-evento:hover {
+  background-color: #f8fafc;
+}
+
+#tela-agenda .btn-voltar svg,
+#tela-agenda .btn-add-evento svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-agenda .agenda-header h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Segmented Control de Abas */
+#tela-agenda .abas-container {
+  display: flex;
+  background-color: #e8eef6;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+  margin-bottom: 18px;
+}
+
+#tela-agenda .aba-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+#tela-agenda .aba-btn.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(30, 94, 200, 0.25);
+}
+
+/* Navegador de Mês */
+#tela-agenda .mes-navegador {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px;
+  margin-bottom: 12px;
+}
+
+#tela-agenda .mes-navegador h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+#tela-agenda .mes-nav-seta {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+#tela-agenda .mes-nav-seta:hover {
+  background-color: #e2e8f0;
+}
+
+#tela-agenda .mes-nav-seta svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Cabeçalho dos dias da semana */
+#tela-agenda .dias-semana-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* Grade do Calendário */
+#tela-agenda .grade-calendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 6px;
+  column-gap: 4px;
+  margin-bottom: 22px;
+}
+
+#tela-agenda .dia-celula {
+  height: 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+#tela-agenda .dia-celula.outro-mes {
+  color: #cbd5e1;
+  cursor: default;
+}
+
+#tela-agenda .dia-celula.selecionado {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(30, 94, 200, 0.3);
+}
+
+#tela-agenda .dia-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 3px;
+}
+
+#tela-agenda .dia-dot.green {
+  background-color: #10b981;
+}
+
+#tela-agenda .dia-dot.orange {
+  background-color: #f59e0b;
+}
+
+/* Seção: Próximos Compromissos */
+#tela-agenda .secao-compromissos {
+  margin-bottom: 16px;
+}
+
+#tela-agenda .secao-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+#tela-agenda .secao-cabecalho h3 {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+#tela-agenda .link-ver-todos {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+#tela-agenda .lista-eventos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+#tela-agenda .card-evento {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s ease;
+}
+
+#tela-agenda .card-evento:hover {
+  transform: translateY(-1px);
+}
+
+#tela-agenda .evento-data-badge {
+  width: 46px;
+  height: 50px;
+  background-color: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-agenda .badge-dia {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+#tela-agenda .badge-mes {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+#tela-agenda .evento-info {
+  flex: 1;
+}
+
+#tela-agenda .evento-info h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+#tela-agenda .evento-horario {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+#tela-agenda .evento-local {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+#tela-agenda .evento-local svg {
+  width: 13px;
+  height: 13px;
+  color: var(--text-muted);
+}
+
+#tela-agenda .evento-seta svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Card Alerta de Escalas Pendentes */
+#tela-agenda .card-alerta-pendente {
+  background-color: #edf4fe;
+  border: 1px solid #d0e2fc;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#tela-agenda .card-alerta-pendente:hover {
+  background-color: #e4effd;
+}
+
+#tela-agenda .alerta-avatar-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #dbeafe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-agenda .alerta-avatar-wrapper svg {
+  width: 20px;
+  height: 20px;
+}
+
+#tela-agenda .alerta-texto {
+  flex: 1;
+}
+
+#tela-agenda .alerta-texto h4 {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+#tela-agenda .alerta-texto p {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+#tela-agenda .alerta-seta svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* VISUALIZAÇÃO: ABA ESCALAS */
+#tela-agenda .escala-evento-destaque {
+  background: linear-gradient(135deg, #1e5ec8 0%, #174aa4 100%);
+  color: #ffffff;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(30, 94, 200, 0.2);
+}
+
+#tela-agenda .tag-evento {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+#tela-agenda .escala-evento-destaque h3 {
+  font-size: 17px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+#tela-agenda .escala-evento-destaque .horario-local {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+#tela-agenda .grupo-escala {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 14px;
+}
+
+#tela-agenda .grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+#tela-agenda .grupo-titulo svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-agenda .grupo-titulo h4 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+#tela-agenda .membro-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed #f1f5f9;
+}
+
+#tela-agenda .membro-linha:last-child {
+  border-bottom: none;
+}
+
+#tela-agenda .membro-detalhe {
+  display: flex;
+  flex-direction: column;
+}
+
+#tela-agenda .membro-detalhe strong {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+#tela-agenda .membro-detalhe span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+#tela-agenda .status-badge.confirmado {
+  background-color: #d1fae5;
+  color: #065f46;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+#tela-agenda .membro-linha.pendente-card {
+  background-color: #fefce8;
+  margin: 4px -6px;
+  padding: 8px 8px;
+  border-radius: 8px;
+  border: 1px solid #fef08a;
+}
+
+#tela-agenda .membro-acoes {
+  display: flex;
+  gap: 6px;
+}
+
+#tela-agenda .btn-confirmar {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+#tela-agenda .btn-substituir {
+  background-color: #ffffff;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+/* Menu Inferior Fixo (Bottom Navigation) */
+#tela-agenda .bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 6px;
+  box-shadow: var(--shadow-nav);
+  z-index: 50;
+}
+
+#tela-agenda .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+#tela-agenda .nav-item svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.15s ease;
+}
+
+#tela-agenda .nav-item.active {
+  color: var(--primary);
+}
+
+#tela-agenda .nav-item:hover {
+  color: var(--primary);
+}

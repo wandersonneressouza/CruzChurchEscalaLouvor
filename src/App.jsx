@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Inicio from './pages/Inicio/Inicio'
+import Agenda from './pages/Agenda/Agenda'
 
 function App() {
   return (
@@ -7,6 +8,7 @@ function App() {
       <div className="app-container">
         <Routes>
           <Route path="/" element={<Inicio />} />
+          <Route path="/agenda" element={<Agenda />} />
         </Routes>
       </div>
     </BrowserRouter>
