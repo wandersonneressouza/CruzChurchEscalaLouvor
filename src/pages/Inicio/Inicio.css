@@ -1,0 +1,564 @@
+/* INICIO.CSS — Estilos da Tela de Início (Escopado por ID #tela-inicio) */
+
+#tela-inicio {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Status Bar Mobile */
+#tela-inicio .status-bar {
+  height: 40px;
+  padding: 10px 22px 0 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+#tela-inicio .status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#tela-inicio .status-icons svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Conteúdo com Scroll */
+#tela-inicio .inicio-scroll-content {
+  flex: 1;
+  padding: 12px 18px 84px 18px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Header do Ministério */
+#tela-inicio .header-ministerio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#tela-inicio .header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#tela-inicio .logo-cruz {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+#tela-inicio .logo-cruz svg {
+  width: 100%;
+  height: 100%;
+}
+
+#tela-inicio .header-titles h1 {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+#tela-inicio .header-titles p {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+#tela-inicio .btn-notificacao {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+#tela-inicio .btn-notificacao:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+#tela-inicio .btn-notificacao svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+}
+
+#tela-inicio .badge-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--danger);
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+
+/* Seção de Saudação */
+#tela-inicio .secao-saudacao {
+  margin-bottom: 18px;
+}
+
+#tela-inicio .secao-saudacao h2 {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+#tela-inicio .secao-saudacao p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Card Principal: Próximo Culto */
+#tela-inicio .card-proximo-culto {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 14px;
+}
+
+#tela-inicio .culto-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#tela-inicio .culto-icone-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-inicio .culto-icone-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+#tela-inicio .culto-chamada {
+  flex: 1;
+}
+
+#tela-inicio .culto-tag {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--primary);
+  display: block;
+}
+
+#tela-inicio .culto-chamada h3 {
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+#tela-inicio .seta-item {
+  display: flex;
+  align-items: center;
+}
+
+#tela-inicio .seta-item svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-inicio .culto-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0 14px 0;
+}
+
+#tela-inicio .culto-data,
+#tela-inicio .culto-local {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+#tela-inicio .culto-data svg,
+#tela-inicio .culto-local svg {
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+#tela-inicio .btn-ver-escala {
+  width: 100%;
+  background-color: var(--primary);
+  color: var(--text-inverse);
+  padding: 13px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+#tela-inicio .btn-ver-escala:hover {
+  background-color: var(--primary-hover);
+}
+
+#tela-inicio .btn-ver-escala:active {
+  transform: scale(0.99);
+}
+
+#tela-inicio .btn-ver-escala svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-inicio .btn-ver-escala .btn-seta {
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+}
+
+/* Grid de Cards Rápidos */
+#tela-inicio .grid-cards-rapidos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+#tela-inicio .mini-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+#tela-inicio .mini-card:hover {
+  transform: translateY(-2px);
+}
+
+#tela-inicio .mini-card-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+#tela-inicio .mini-card-icon-wrapper.blue {
+  background-color: var(--primary-light);
+}
+
+#tela-inicio .mini-card-icon-wrapper.light-blue {
+  background-color: #e0f2fe;
+}
+
+#tela-inicio .mini-card-icon-wrapper svg {
+  width: 20px;
+  height: 20px;
+}
+
+#tela-inicio .mini-card-texto h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+#tela-inicio .mini-card-texto .sub-texto {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+#tela-inicio .mini-card-texto .local-texto {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+#tela-inicio .mini-card-texto .local-texto svg {
+  width: 13px;
+  height: 13px;
+  color: var(--text-muted);
+}
+
+#tela-inicio .mini-card-texto .pendente-alerta {
+  font-size: 12.5px;
+  color: #ea580c;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+#tela-inicio .mini-card-seta {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+}
+
+#tela-inicio .mini-card-seta svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Seções Gerais (Avisos e Devocional) */
+#tela-inicio .secao-avisos,
+#tela-inicio .secao-devocional {
+  margin-bottom: 20px;
+}
+
+#tela-inicio .secao-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#tela-inicio .secao-titulo-com-icone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#tela-inicio .secao-titulo-com-icone svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-inicio .secao-cabecalho h3 {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+#tela-inicio .link-ver-todos {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  padding: 4px 6px;
+  transition: opacity 0.2s ease;
+}
+
+#tela-inicio .link-ver-todos:hover {
+  opacity: 0.8;
+}
+
+/* Card de Avisos */
+#tela-inicio .card-aviso {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+#tela-inicio .aviso-titulo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+#tela-inicio .dot-indicador {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  flex-shrink: 0;
+}
+
+#tela-inicio .aviso-titulo-row h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+#tela-inicio .aviso-mensagem {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+#tela-inicio .aviso-tempo {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Card Devocional */
+#tela-inicio .card-devocional {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s ease;
+}
+
+#tela-inicio .card-devocional:hover {
+  transform: translateY(-1px);
+}
+
+#tela-inicio .devocional-capa {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+#tela-inicio .capa-ilustracao {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 60%, #1e293b 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tela-inicio .sol-devocional {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #fef08a;
+  box-shadow: 0 0 10px #fde047;
+}
+
+#tela-inicio .montanhas-devocional {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 24px;
+  background: #0f172a;
+  clip-path: polygon(0% 100%, 35% 20%, 65% 70%, 85% 15%, 100% 100%);
+}
+
+#tela-inicio .devocional-info {
+  flex: 1;
+}
+
+#tela-inicio .devocional-info h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+#tela-inicio .devocional-frase {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+#tela-inicio .devocional-ref {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: block;
+  margin-top: 3px;
+}
+
+/* Menu Inferior Fixo (Bottom Navigation) */
+#tela-inicio .bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 6px;
+  box-shadow: var(--shadow-nav);
+  z-index: 50;
+}
+
+#tela-inicio .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+#tela-inicio .nav-item svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.15s ease;
+}
+
+#tela-inicio .nav-item.active {
+  color: var(--primary);
+}
+
+#tela-inicio .nav-item:hover {
+  color: var(--primary);
+}

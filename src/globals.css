@@ -1,0 +1,93 @@
+/* GLOBALS.CSS — Sistema de Gestão do Ministério da Igreja */
+
+:root {
+  /* Cores Principais */
+  --bg-page: #eef2f7;
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --primary: #1e5ec8;
+  --primary-hover: #164db0;
+  --primary-light: #eaf1fc;
+  --primary-subtle: #f3f7fd;
+  
+  /* Textos */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Bordas e Divisores */
+  --border-light: #eef2f6;
+  --border-subtle: #e2e8f0;
+
+  /* Status e Alertas */
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --success: #10b981;
+  --success-light: #d1fae5;
+
+  /* Sombras */
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.05);
+  --shadow-nav: 0 -4px 20px rgba(15, 23, 42, 0.06);
+
+  /* Raios de borda */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-pill: 9999px;
+
+  /* Tipografia */
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Container do App (Mobile-first responsivo com visual de app) */
+.app-container {
+  max-width: 440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background-color: var(--bg-app);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 440px) {
+  .app-container {
+    max-width: 100%;
+    box-shadow: none;
+  }
+}
