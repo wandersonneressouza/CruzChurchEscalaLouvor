@@ -13,6 +13,19 @@ import {
 
 const AppContext = createContext()
 
+function calcularTempoRelativo(dataStr) {
+  if (!dataStr) return 'Recente'
+  const diffMs = Date.now() - new Date(dataStr).getTime()
+  const diffMin = Math.floor(diffMs / (1000 * 60))
+  if (diffMin < 1) return 'Agora mesmo'
+  if (diffMin < 60) return `Há ${diffMin} min`
+  const diffHoras = Math.floor(diffMin / 60)
+  if (diffHoras < 24) return `Há ${diffHoras} hora${diffHoras > 1 ? 's' : ''}`
+  const diffDias = Math.floor(diffHoras / 24)
+  if (diffDias < 30) return `Há ${diffDias} dia${diffDias > 1 ? 's' : ''}`
+  return new Date(dataStr).toLocaleDateString('pt-BR')
+}
+
 export function AppProvider({ children }) {
   // 0. Autenticação e Sessão
   const [estaAutenticado, setEstaAutenticado] = useState(false)
@@ -26,6 +39,7 @@ export function AppProvider({ children }) {
   const [musicas, setMusicas] = useState([])
   const [escalas, setEscalas] = useState([])
   const [agendaEventos, setAgendaEventos] = useState([])
+  const [comunicados, setComunicados] = useState([])
   const [equipeMembros, setEquipeMembros] = useState([])
   const [solicitacoesVoluntarios, setSolicitacoesVoluntarios] = useState([])
   const [solicitacoesLideres, setSolicitacoesLideres] = useState([])
@@ -292,6 +306,30 @@ export function AppProvider({ children }) {
 
       if (dataTrocas && !errTrocas) {
         setPedidosTroca(dataTrocas)
+      }
+
+      // 10. Comunicados e Avisos da Liderança
+      try {
+        const { data: dataComunicados, error: errComunicados } = await supabase
+          .from('comunicados')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (dataComunicados && !errComunicados) {
+          setComunicados(
+            dataComunicados.map(c => ({
+              id: c.id,
+              igrejaId: c.igreja_id,
+              titulo: c.titulo,
+              conteudo: c.conteudo,
+              prioridade: c.prioridade || 'normal',
+              tempoRelativo: calcularTempoRelativo(c.created_at),
+              createdAt: c.created_at
+            }))
+          )
+        }
+      } catch (eCom) {
+        console.warn('Aviso ao consultar comunicados:', eCom)
       }
     } catch (err) {
       console.error('Erro ao consultar dados no Supabase:', err)
@@ -1166,6 +1204,28 @@ export function AppProvider({ children }) {
     }
   }
 
+  // Criar novo comunicado (Líder / Admin)
+  async function criarComunicado({ titulo, conteudo, prioridade = 'normal' }) {
+    if (supabaseConfigurado && supabase) {
+      const { data, error } = await supabase
+        .from('comunicados')
+        .insert({
+          igreja_id: usuario?.igrejaId || 1,
+          autor_id: usuario?.id || null,
+          titulo,
+          conteudo,
+          prioridade
+        })
+        .select()
+        .single()
+
+      if (!error && data) {
+        await carregarDadosDoBanco()
+        return data
+      }
+    }
+  }
+
   // Devocional: marcar como lido
   function toggleDevocionalLido() {
     setDevocional(prev => ({
@@ -1263,6 +1323,8 @@ export function AppProvider({ children }) {
         revogarLiderancaIgreja,
         criarEventoAgenda,
         excluirEventoAgenda,
+        comunicados,
+        criarComunicado,
         aprovarVoluntario,
         recusarVoluntario,
         alterarCategoriaIntegrante,

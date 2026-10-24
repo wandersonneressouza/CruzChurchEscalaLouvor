@@ -1,20 +1,36 @@
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import './Inicio.css'
 
 function Inicio() {
-  const { usuario, totalEscalasPendentes, totalSolicitacoesPendentes, devocional, agendaEventos, escalas } = useAppContext()
+  const {
+    usuario,
+    totalEscalasPendentes,
+    totalSolicitacoesPendentes,
+    devocional,
+    agendaEventos,
+    escalas,
+    comunicados,
+    criarComunicado
+  } = useAppContext()
+
   const primeiroNome = usuario?.nome ? usuario.nome.split(' ')[0] : 'Ministro'
   const ehLider = usuario?.tipoConta === 'lider' || usuario?.tipoConta === 'admin' || usuario?.cargo?.toLowerCase().includes('líder')
 
+  // Estado para criação de novo comunicado (Líder / Admin)
+  const [modalNovoAviso, setModalNovoAviso] = useState(false)
+  const [novoAviso, setNovoAviso] = useState({ titulo: '', conteudo: '', prioridade: 'normal' })
+  const [salvandoAviso, setSalvandoAviso] = useState(false)
+
   // Filtra eventos e cultos da congregação do usuário
-  const eventosIgreja = React.useMemo(() => {
+  const eventosIgreja = useMemo(() => {
     if (!agendaEventos) return []
     return agendaEventos.filter(e => !usuario?.igrejaId || e.igrejaId === usuario.igrejaId)
   }, [agendaEventos, usuario?.igrejaId])
 
-  const proximoCulto = React.useMemo(() => {
+  // Próximo culto real
+  const proximoCulto = useMemo(() => {
     const cultoEv = eventosIgreja.find(e => e.tipo === 'Culto')
     if (cultoEv) return cultoEv
 
@@ -34,9 +50,38 @@ function Inicio() {
     return eventosIgreja[0] || null
   }, [eventosIgreja, escalas, usuario?.igrejaId])
 
-  const proximoEnsaio = React.useMemo(() => {
+  // Próximo ensaio real
+  const proximoEnsaio = useMemo(() => {
     return eventosIgreja.find(e => e.tipo === 'Ensaio') || null
   }, [eventosIgreja])
+
+  // Avisos reais da congregação
+  const comunicadosIgreja = useMemo(() => {
+    if (!comunicados) return []
+    return comunicados.filter(c => !usuario?.igrejaId || c.igrejaId === usuario.igrejaId)
+  }, [comunicados, usuario?.igrejaId])
+
+  // Salvar novo aviso no Supabase
+  async function handleSalvarAviso(e) {
+    e.preventDefault()
+    if (!novoAviso.titulo || !novoAviso.conteudo) {
+      alert('Preencha o título e o conteúdo do aviso.')
+      return
+    }
+
+    setSalvandoAviso(true)
+    try {
+      if (criarComunicado) {
+        await criarComunicado(novoAviso)
+      }
+      setModalNovoAviso(false)
+      setNovoAviso({ titulo: '', conteudo: '', prioridade: 'normal' })
+    } catch (err) {
+      alert('Erro ao publicar aviso: ' + (err.message || 'Falha na comunicação.'))
+    } finally {
+      setSalvandoAviso(false)
+    }
+  }
 
   return (
     <div id="tela-inicio">
@@ -54,7 +99,7 @@ function Inicio() {
             </div>
             <div className="header-titles">
               <h1>Ministério de Louvor</h1>
-              <p>Servindo com excelência</p>
+              <p>{usuario?.campus || 'Servindo com excelência'}</p>
             </div>
           </div>
 
@@ -95,7 +140,7 @@ function Inicio() {
           </Link>
         )}
 
-        {/* Card Principal: Próximo Culto */}
+        {/* Card Principal: Próximo Culto Real do Banco */}
         <section className="card-proximo-culto">
           <div className="culto-top">
             <div className="culto-icone-box">
@@ -199,7 +244,7 @@ function Inicio() {
           </Link>
         </section>
 
-        {/* Seção: Avisos da Liderança */}
+        {/* Seção: Avisos Reais da Liderança (Banco Supabase) */}
         <section className="secao-avisos">
           <div className="secao-cabecalho">
             <div className="secao-titulo-com-icone">
@@ -209,22 +254,40 @@ function Inicio() {
               </svg>
               <h3>Avisos da liderança</h3>
             </div>
-            <button className="link-ver-todos">Ver todos</button>
+            {ehLider ? (
+              <button
+                type="button"
+                className="link-ver-todos"
+                onClick={() => setModalNovoAviso(true)}
+              >
+                + Novo aviso
+              </button>
+            ) : (
+              <button className="link-ver-todos" onClick={() => {}}>Recentes</button>
+            )}
           </div>
 
-          <div className="card-aviso">
-            <div className="aviso-titulo-row">
-              <span className="dot-indicador"></span>
-              <h4>Ensaio geral</h4>
+          {comunicadosIgreja.length > 0 ? (
+            comunicadosIgreja.slice(0, 3).map(aviso => (
+              <div key={aviso.id} className="card-aviso">
+                <div className="aviso-titulo-row">
+                  <span className={`dot-indicador ${aviso.prioridade === 'urgente' ? 'urgente' : ''}`}></span>
+                  <h4>{aviso.titulo}</h4>
+                </div>
+                <p className="aviso-mensagem">{aviso.conteudo}</p>
+                <span className="aviso-tempo">{aviso.tempoRelativo || 'Recente'}</span>
+              </div>
+            ))
+          ) : (
+            <div className="card-aviso" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
+              <p className="aviso-mensagem" style={{ color: '#64748b', fontStyle: 'italic', margin: 0 }}>
+                Nenhum comunicado recente publicado pela liderança.
+              </p>
             </div>
-            <p className="aviso-mensagem">
-              Na próxima quarta-feira teremos o ensaio geral com a banda e equipe de mídia.
-            </p>
-            <span className="aviso-tempo">Há 2 horas</span>
-          </div>
+          )}
         </section>
 
-        {/* Seção: Devocional da Semana */}
+        {/* Seção: Devocional da Semana Real do Banco Supabase */}
         <section className="secao-devocional">
           <div className="secao-cabecalho">
             <div className="secao-titulo-com-icone">
@@ -245,9 +308,11 @@ function Inicio() {
               </div>
             </div>
             <div className="devocional-info">
-              <h4>Confie no Senhor</h4>
-              <p className="devocional-frase">"Entrega o teu caminho ao Senhor..."</p>
-              <span className="devocional-ref">Salmos 37:5</span>
+              <h4>{devocional?.titulo || 'Adoração com Propósito e Santidade'}</h4>
+              <p className="devocional-frase">
+                "{devocional?.versiculoTexto || 'Servi ao Senhor com alegria e apresentai-vos a ele com cânticos.'}"
+              </p>
+              <span className="devocional-ref">{devocional?.versiculoReferencia || 'Salmos 100:2'}</span>
             </div>
             <div className="seta-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5">
@@ -257,6 +322,82 @@ function Inicio() {
           </Link>
         </section>
       </div>
+
+      {/* Modal de Publicação de Aviso (Líder / Admin) */}
+      {modalNovoAviso && (
+        <div className="modal-agenda-backdrop" onClick={() => setModalNovoAviso(false)}>
+          <div className="modal-agenda-caixa" onClick={e => e.stopPropagation()}>
+            <div className="modal-agenda-header">
+              <h3>Publicar Aviso para a Equipe</h3>
+              <button
+                type="button"
+                className="btn-fechar-modal-agenda"
+                onClick={() => setModalNovoAviso(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarAviso}>
+              <div className="modal-agenda-corpo">
+                <div className="campo-modal-agenda">
+                  <label htmlFor="aviso-titulo">Título do Aviso *</label>
+                  <input
+                    id="aviso-titulo"
+                    type="text"
+                    required
+                    placeholder="Ex: Ensaio Geral na Quarta, Novo Repertório"
+                    value={novoAviso.titulo}
+                    onChange={e => setNovoAviso({ ...novoAviso, titulo: e.target.value })}
+                  />
+                </div>
+
+                <div className="campo-modal-agenda">
+                  <label htmlFor="aviso-prioridade">Prioridade</label>
+                  <select
+                    id="aviso-prioridade"
+                    value={novoAviso.prioridade}
+                    onChange={e => setNovoAviso({ ...novoAviso, prioridade: e.target.value })}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="urgente">Urgente / Importante</option>
+                    <option value="baixa">Informativo</option>
+                  </select>
+                </div>
+
+                <div className="campo-modal-agenda">
+                  <label htmlFor="aviso-conteudo">Mensagem *</label>
+                  <textarea
+                    id="aviso-conteudo"
+                    rows="3"
+                    required
+                    placeholder="Escreva a mensagem que todos os integrantes da congregação verão..."
+                    value={novoAviso.conteudo}
+                    onChange={e => setNovoAviso({ ...novoAviso, conteudo: e.target.value })}
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="modal-agenda-rodape">
+                <button
+                  type="button"
+                  className="btn-cancelar-modal-agenda"
+                  onClick={() => setModalNovoAviso(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn-salvar-modal-agenda"
+                  disabled={salvandoAviso}
+                >
+                  {salvandoAviso ? 'Publicando...' : 'Publicar no Mural'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Menu Inferior Fixo (Bottom Navigation) */}
       <nav className="bottom-nav">

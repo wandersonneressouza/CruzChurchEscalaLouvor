@@ -601,3 +601,127 @@
 #tela-inicio .nav-item:hover {
   color: var(--primary);
 }
+
+/* Modal Novo Aviso */
+#tela-inicio .modal-agenda-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#tela-inicio .modal-agenda-caixa {
+  background: #ffffff;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalEntrada 0.2s ease-out;
+}
+
+#tela-inicio .modal-agenda-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#tela-inicio .modal-agenda-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+#tela-inicio .btn-fechar-modal-agenda {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+#tela-inicio .modal-agenda-corpo {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+#tela-inicio .campo-modal-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#tela-inicio .campo-modal-agenda label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+#tela-inicio .campo-modal-agenda input,
+#tela-inicio .campo-modal-agenda select,
+#tela-inicio .campo-modal-agenda textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: #f8fafc;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+#tela-inicio .campo-modal-agenda input:focus,
+#tela-inicio .campo-modal-agenda select:focus,
+#tela-inicio .campo-modal-agenda textarea:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+#tela-inicio .modal-agenda-rodape {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f8fafc;
+}
+
+#tela-inicio .btn-cancelar-modal-agenda {
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-light);
+}
+
+#tela-inicio .btn-salvar-modal-agenda {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--primary);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
