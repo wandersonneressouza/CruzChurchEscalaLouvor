@@ -1,30 +1,15 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useAppContext } from '../../context/AppContext'
 import './Inicio.css'
 
 function Inicio() {
+  const { usuario, totalEscalasPendentes, totalSolicitacoesPendentes, devocional } = useAppContext()
+  const primeiroNome = usuario?.nome ? usuario.nome.split(' ')[0] : 'Anderson'
+  const ehLider = usuario?.tipoConta === 'lider' || usuario?.cargo?.toLowerCase().includes('líder')
+
   return (
     <div id="tela-inicio">
-      {/* Barra de Status Mobile */}
-      <div className="status-bar">
-        <span className="status-time">9:41</span>
-        <div className="status-icons">
-          <svg className="icon-signal" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25A10.93 10.93 0 0 1 1 12C1 5.92 5.92 1 12 1s11 4.92 11 11c0 2.37-.75 4.57-2.03 6.36l-.63-.63A9.94 9.94 0 0 0 21 12c0-4.97-4.03-9-9-9z"/>
-            <path d="M12 7a5 5 0 0 0-5 5c0 1.25.46 2.39 1.22 3.28l.71-.71A3.98 3.98 0 0 1 8 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4c0 .93-.32 1.79-.86 2.47l.71.71A4.97 4.97 0 0 0 17 12a5 5 0 0 0-5-5z"/>
-            <circle cx="12" cy="12" r="1.5"/>
-          </svg>
-          <svg className="icon-wifi" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98A17.88 17.88 0 0 0 12 4z"/>
-          </svg>
-          <svg className="icon-battery" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="2" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-            <rect x="4" y="8" width="12" height="8" rx="1"/>
-            <path d="M21 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-      </div>
-
       {/* Conteúdo Principal com Rolagem */}
       <div className="inicio-scroll-content">
         {/* Topo / Header da Igreja */}
@@ -43,20 +28,42 @@ function Inicio() {
             </div>
           </div>
 
-          <button className="btn-notificacao" aria-label="Notificações">
+          <Link to="/mais" className="btn-notificacao" aria-label="Notificações">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            <span className="badge-dot"></span>
-          </button>
+            {(totalSolicitacoesPendentes > 0 || totalEscalasPendentes > 0) && (
+              <span className="badge-dot"></span>
+            )}
+          </Link>
         </header>
 
         {/* Saudação */}
         <section className="secao-saudacao">
-          <h2>Olá, Wanderson!</h2>
+          <h2>Olá, {primeiroNome}!</h2>
           <p>Que hoje seja um dia de adoração e serviço ao Senhor.</p>
         </section>
+
+        {/* Banner de Solicitações Pendentes para o Líder */}
+        {ehLider && totalSolicitacoesPendentes > 0 && (
+          <Link to="/mais" className="banner-solicitacoes-pendentes">
+            <div className="icone-alerta-banner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <polyline points="16 11 18 13 22 9" />
+              </svg>
+            </div>
+            <div className="texto-alerta-banner">
+              <strong>{totalSolicitacoesPendentes} novo(s) voluntário(s) aguardando</strong>
+              <span>Toque para revisar e homologar na equipe</span>
+            </div>
+            <svg className="seta-alerta-banner" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
+        )}
 
         {/* Card Principal: Próximo Culto */}
         <section className="card-proximo-culto">
@@ -144,7 +151,9 @@ function Inicio() {
             </div>
             <div className="mini-card-texto">
               <h4>Confirmações</h4>
-              <p className="pendente-alerta">2 pendentes</p>
+              <p className="pendente-alerta">
+                {totalEscalasPendentes > 0 ? `${totalEscalasPendentes} pendente${totalEscalasPendentes > 1 ? 's' : ''}` : 'Tudo em dia!'}
+              </p>
             </div>
             <div className="mini-card-seta">
               <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5">

@@ -10,30 +10,6 @@
   overflow: hidden;
 }
 
-/* Status Bar Mobile */
-#tela-repertorio .status-bar {
-  height: 40px;
-  padding: 10px 22px 0 22px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  user-select: none;
-}
-
-#tela-repertorio .status-icons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-#tela-repertorio .status-icons svg {
-  width: 16px;
-  height: 16px;
-}
-
 /* Conteúdo com Scroll */
 #tela-repertorio .repertorio-scroll-content {
   flex: 1;

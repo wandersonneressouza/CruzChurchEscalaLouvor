@@ -103,19 +103,94 @@
     - *Configurações:* Toggles de lembretes de escala e tema noturno, além de confirmação de logout.
 - **Validação de Build:** `npm run build` executado com sucesso (zero erros).
 
+### [FEAT-005] Estado Global (Context API + LocalStorage) e PWA Nativo
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/context/AppContext.jsx` (Centralizador de dados do usuário, escalas, repertório, devocional e trocas com persistência em localStorage)
+  - `src/App.jsx` (Envolvimento das rotas no `<AppProvider>`)
+  - `src/pages/Inicio/Inicio.jsx` (Card de confirmações dinâmico em tempo real, saudação e badge de pendências)
+  - `src/pages/Agenda/Agenda.jsx` (Confirmação de presença reativa, solicitação de troca e cálculo de escalas pendentes)
+  - `src/pages/Repertorio/Repertorio.jsx` (Adição e persistência de novas músicas via modal FAB, filtragem reativa e favoritos)
+  - `src/pages/Devocional/Devocional.jsx` (Marcar lido sincronizado com progresso semanal e card da Home)
+  - `src/pages/Mais/Mais.jsx` (Toggles de disponibilidade, notificações, tema escuro e resposta de pedidos de substituição)
+  - `public/manifest.json` (Configuração PWA com tema `#1e5ec8`, display standalone e orientação)
+  - `public/icon-192.svg` e `public/icon-512.svg` (Ícones vetoriais de alta resolução com gradiente e cruz central)
+  - `public/sw.js` (Service Worker nativo para cache offline dos assets)
+  - `index.html` (Metatags PWA para Safari/iOS e Android, link do manifesto e ícones)
+  - `src/main.jsx` (Registro seguro do Service Worker em ambiente web)
+- **Funcionalidades Validadas:**
+  - Ao confirmar uma convocação na Agenda, o status passa para "✓ Confirmado" e a contagem de pendências no card da Home é reduzida instantaneamente.
+  - Ao cadastrar uma nova música no Repertório, os dados persistem em LocalStorage e o louvor aparece imediatamente no topo da listagem.
+  - Ao marcar leitura devocional como lida, o status sincroniza com o cronograma semanal e a Home.
+  - Responder a pedidos de substituição no menu Mais atualiza o contador e remove o alerta de pendência.
+  - O aplicativo agora pode ser instalado como PWA em smartphones Android e iOS (Adicionar à Tela de Início).
+- **Validação de Build:** `npm run build` executado com sucesso (zero erros).
+- **Validação de Navegador:** Testado via subagente com sucesso.
+
 ---
 
-## 3. Próximas Etapas e Roadmap Planejado
+### [FEAT-006] Tela de Autenticação / Login (/login) e Proteção de Rotas por Perfil
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/pages/Login/Login.jsx` (Tela monobloco com formulário direto de e-mail e senha e modal de recuperação de senha)
+  - `src/pages/Login/Login.css` (CSS puro 100% escopado sob `#tela-login`)
+  - `src/context/AppContext.jsx` (Estado `estaAutenticado` e métodos `login` e `logout` integrados)
+  - `src/pages/Mais/Mais.jsx` (Botão "Encerrar Sessão" conectado ao `logout()` e navegação para `/login`)
+  - `src/App.jsx` (Rotas protegidas com `RotaPrivada` e `RotaPublica` via React Router Dom)
+- **Identificador de Escopo CSS:** `#tela-login`
+- **Funcionalidades da Tela de Login:**
+  - Logotipo em relevo com a cruz da Cruz Church e tipografia de acolhimento.
+  - Formulário limpo com e-mail ministerial, senha, botão de alternar visibilidade (olho), checkbox customizado para lembrar login.
+  - Modal Bottom Sheet para recuperação de senha com simulação de envio de link.
+- **Ajuste Global de Layout:** Remoção completa do componente visual simulado `div.status-bar` de todas as páginas (`Inicio`, `Agenda`, `Repertorio`, `Devocional`, `Mais` e `Login`) para uma experiência web mais limpa e fluida.
+- **Validação de Build:** `npm run build` executado com sucesso (zero erros).
 
-### Conclusão da Etapa 1: Front-end e Design
-- **100% do fluxo de navegação implementado:**
-  1. `/` — Início (Dashboard de cultos, ensaios, confirmações e avisos)
-  2. `/agenda` — Agenda e Escalas (Calendário mensal e detalhamento por ministérios)
-  3. `/musicas` — Repertório Musical (Busca, filtros por culto/tema e cadastro com modal FAB)
-  4. `/devocional` — Devocional Diário e Plano Semanal (Player áudio, versículo, oração e progresso)
-  5. `/mais` — Menu Ministerial e Configurações (Perfil, disponibilidade, equipe, trocas, equipamentos e manual)
+### [FEAT-007] Sistema de Cadastro e Gerenciamento de Integrantes por Igreja
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/constants/categoriasMusicais.js`: Base oficial unificada de categorias e funções musicais (`Vocal`, `Harmonia`, `Ritmo`, `Áudio & Som`, `Mídia & Transmissão`).
+  - `src/pages/Cadastro/Cadastro.jsx` e `src/pages/Cadastro/Cadastro.css` (`#tela-cadastro`): Formulário de registro distinguindo Integrante Voluntário (pesquisa e vinculação à congregação) e Líder de Louvor (solicitação de homologação de igreja).
+  - `src/pages/AguardandoAprovacao/AguardandoAprovacao.jsx` e `AguardandoAprovacao.css` (`#tela-aguardando`): Tela com tratamento dos 4 estados (`pendente`, `pendente_lider`, `recusado`, `revogado`), explicações claras e simulador de perfis para homologação rápida.
+  - `src/pages/Login/Login.jsx` e `Login.css`: Botão e link "Cadastrar-se / Solicitar Acesso" encaminhando para `/cadastro`.
+  - `src/App.jsx`: Guarda de rotas `RotaPrivada` verificando `statusAcesso === 'aprovado'`; rota `/aguardando-aprovacao` com `RotaAguardando`; rotas públicas em `/login` e `/cadastro`.
+  - `src/context/AppContext.jsx`: Gerenciamento reativo de congregações (`igrejas`), membros da equipe (`equipeMembros`), solicitações de voluntários (`solicitacoesVoluntarios`), e métodos `cadastrarVoluntario`, `cadastrarSolicitacaoLider`, `aprovarVoluntario`, `recusarVoluntario`, `alterarCategoriaIntegrante`, `revogarAcessoIntegrante`, `atualizarMinhaFuncao` e `alternarPerfilVisual`.
+  - `src/pages/Mais/Mais.jsx` e `Mais.css`: Gestão de integrantes pelo líder com abas "Membros Ativos" e "Solicitações Pendentes", botões para Aprovar/Recusar novos voluntários, Ajustar Categoria/Função Musical do membro, Revogar Acesso à congregação (sem apagar conta nem histórico) e modal de edição da própria função musical pelo voluntário.
+  - `src/pages/Inicio/Inicio.jsx` e `Inicio.css`: Notificação destacada para o líder quando há novos voluntários aguardando homologação na equipe.
+- **Validação de Build:** `npm run build` executado com código 0 (zero erros).
 
-### Etapa 2: Integração e Persistência (Futuro / Próximo Passo)
-- **Planejamento de Estado Global / Context API:** Centralização de usuário logado, status das escalas confirmadas e músicas do repertório.
-- **Camada de Serviços / API Mock ou Supabase/Firebase:** Estruturação para persistência real de dados.
-- **PWA (Progressive Web App):** Adição de service worker e manifesto para instalação no celular como aplicativo nativo.
+### [FEAT-008] Painel do Administrador Geral (ADMIN) — LouvorApp
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/pages/Admin/AdminDashboard.jsx` e `src/pages/Admin/AdminDashboard.css` (`#tela-admin-dashboard`): Painel completo do ADMIN em tema 100% claro, limpo e profissional, responsivo para desktop, tablet e mobile.
+  - `src/App.jsx`: Rota `/admin` conectada ao `AdminDashboard`.
+  - `src/context/AppContext.jsx`: Indicadores globais (`totalIgrejasAtivas`, `totalLideresAprovados`, `totalIntegrantesCadastrados`, `totalSolicitacoesLideresPendentes`), mock inicial de solicitações (`SOLICITACOES_LIDERES_INICIAIS`), e métodos de administração (`aprovarSolicitacaoLider`, `recusarSolicitacaoLider`, `criarIgreja`, `editarIgreja`, `alternarStatusIgreja`, `revogarLiderancaIgreja`).
+  - `src/pages/Mais/Mais.jsx` e `src/pages/AguardandoAprovacao/AguardandoAprovacao.jsx`: Atalhos de acesso rápido ao Painel ADMIN e opção no simulador de papéis.
+- **Funcionalidades do Painel ADMIN:**
+  - **Identificação e Navegação:** Header com LouvorApp, tag ADMIN GERAL, menu em pills (`Dashboard & Homologações`, `Igrejas`, `Líderes Aprovados`, `Integrantes da Base`), atalho para o App Ministerial e perfil admin.
+  - **Indicadores da Tela Inicial (4 Cards):** Total de Igrejas Ativas (100% operacionais), Total de Líderes Aprovados, Total de Integrantes na Base e Solicitações Pendentes (em destaque âmbar/laranja).
+  - **Área Central em Destaque:** Lista/cards de Solicitações de Novos Líderes & Congregações com dados de contato, congregação pretendida e notas; botões para "Aprovar & Homologar" (com modal inteligente permitindo cadastrar como nova igreja ou vincular a congregação existente para evitar duplicidades) e "Recusar" (com justificativa).
+  - **Gestão de Congregações:** Tabela limpa com busca instantânea, botão "+ Nova Congregação", edição de dados e toggle de ativação/suspensão.
+  - **Gestão de Líderes:** Cards com congregações vinculadas e ação de revogação de liderança.
+  - **Base de Integrantes:** Listagem de todos os músicos e voluntários cadastrados.
+- **Validação de Build:** `npm run build` executado com código 0 (zero erros).
+
+---
+
+## 3. Próximas Etapas e Roadmap Planejado (Etapa 2)
+
+1. **[FEAT-009] Integração com Supabase (Banco de Dados em Nuvem & Auth) — CONCLUÍDO:**
+   - **Schema SQL e RLS:** 13 tabelas relacionais em [supabase/schema.sql](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/supabase/schema.sql) com RLS ativado em 100%, trigger `handle_new_user` e funções `is_admin()`, `get_minha_igreja_id()` e `is_lider_da_igreja()`.
+   - **Remoção de Dados Fantasias:** Eliminados arrays estáticos em mock (`IGREJAS_INICIAIS`, `MUSICAS_INICIAIS`, `ESCALAS_INICIAIS`, `EQUIPE_INICIAL`, `SOLICITACOES_VOLUNTARIOS_INICIAIS`, `SOLICITACOES_LIDERES_INICIAIS`).
+   - **Carregamento Real:** [AppContext.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/context/AppContext.jsx) agora consulta e persiste dados diretamente nas tabelas `igrejas`, `musicas`, `escalas`, `agenda_eventos`, `perfis`, `solicitacoes_voluntarios`, `solicitacoes_lideres` e `pedidos_troca` do Supabase.
+   - **Autenticação Real:** Conexão direta com Supabase Auth (`signUp`, `signInWithPassword`, `signOut`, `onAuthStateChange`) em [Login.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Login/Login.jsx) e [Cadastro.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Cadastro/Cadastro.jsx).
+   - **Proteção Estrita de Rota ADMIN (`RotaAdmin`):** [App.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/App.jsx) bloqueia acesso direto à rota `/admin`. Apenas usuários autenticados com `tipo_conta === 'admin'` ou `cargo === 'ADMIN'` podem acessar; não autenticados são enviados para o login e outros papéis para `/`.
+   - **Atalho Discreto no Login:** [Login.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Login/Login.jsx) inclui botão sutil "Entrar como administrador" que preenche o e-mail do admin e foca o campo de senha.
+   - **Validação de Build:** `npm run build` executado com código 0 (zero erros).
+
+
+
+

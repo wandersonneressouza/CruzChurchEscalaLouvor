@@ -1,26 +1,58 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAppContext } from '../../context/AppContext'
+import { CATEGORIAS_MUSICAIS } from '../../constants/categoriasMusicais'
 import './Mais.css'
 
 function Mais() {
-  const [disponivel, setDisponivel] = useState(true)
-  const [notificacoesAtivas, setNotificacoesAtivas] = useState(true)
-  const [temaEscuro, setTemaEscuro] = useState(false)
-  const [modalAtivo, setModalAtivo] = useState(null) // 'equipe' | 'trocas' | 'equipamentos' | 'manual' | 'sair' | null
-  const [pedidoRespondido, setPedidoRespondido] = useState(false)
+  const navigate = useNavigate()
+  const {
+    usuario,
+    equipeMembros,
+    solicitacoesVoluntarios,
+    totalSolicitacoesPendentes,
+    totalSolicitacoesLideresPendentes,
+    aprovarVoluntario,
+    recusarVoluntario,
+    alterarCategoriaIntegrante,
+    revogarAcessoIntegrante,
+    atualizarMinhaFuncao,
+    alternarPerfilVisual,
+    logout,
+    toggleDisponibilidade,
+    toggleNotificacoes,
+    toggleTemaEscuro,
+    pedidosTroca,
+    totalTrocasPendentes,
+    responderPedidoTroca
+  } = useAppContext()
 
-  // Lista da Equipe Ministerial de Louvor
-  const equipeMembros = [
-    { id: 1, nome: 'Anderson Neres', funcao: 'Teclado / Ministro', naipe: 'Harmonia', status: 'confirmado', avatar: 'AN' },
-    { id: 2, nome: 'Sarah Menezes', funcao: 'Vocal Líder (Soprano)', naipe: 'Vocal', status: 'confirmado', avatar: 'SM' },
-    { id: 3, nome: 'Lucas Silva', funcao: 'Violão Aço', naipe: 'Harmonia', status: 'pendente', avatar: 'LS' },
-    { id: 4, nome: 'Matheus Costa', funcao: 'Guitarra Solo', naipe: 'Harmonia', status: 'confirmado', avatar: 'MC' },
-    { id: 5, nome: 'Gabriel Rocha', funcao: 'Contrabaixo 5C', naipe: 'Ritmo', status: 'confirmado', avatar: 'GR' },
-    { id: 6, nome: 'Thiago Martins', funcao: 'Bateria', naipe: 'Ritmo', status: 'confirmado', avatar: 'TM' },
-    { id: 7, nome: 'Camila Santos', funcao: 'Vocal (Contralto)', naipe: 'Vocal', status: 'confirmado', avatar: 'CS' },
-    { id: 8, nome: 'Felipe Diniz', funcao: 'Técnico de Som (FOH)', naipe: 'Áudio & Técnica', status: 'confirmado', avatar: 'FD' },
-    { id: 9, nome: 'Jéssica Lima', funcao: 'Transmissão & Mídia', naipe: 'Mídia', status: 'confirmado', avatar: 'JL' }
-  ]
+  const [modalAtivo, setModalAtivo] = useState(null) // 'equipe' | 'trocas' | 'equipamentos' | 'manual' | 'meu_perfil' | 'simulador' | 'sair' | null
+  const [abaEquipe, setAbaEquipe] = useState('membros') // 'membros' | 'solicitacoes'
+
+  // Edição de categoria musical de um membro pelo líder
+  const [membroEditando, setMembroEditando] = useState(null)
+  const [novaFuncaoMembro, setNovaFuncaoMembro] = useState('')
+
+  // Confirmação de revogação de acesso
+  const [membroRevogando, setMembroRevogando] = useState(null)
+
+  // Edição de função no próprio perfil
+  const [minhaFuncao, setMinhaFuncao] = useState(usuario?.funcao || 'Vocal Líder')
+  const [feedbackPerfil, setFeedbackPerfil] = useState(false)
+
+  // Filtro de solicitações pendentes da igreja do líder
+  const solicitacoesPendentesIgreja = solicitacoesVoluntarios.filter(
+    s => s.status === 'pendente' && s.igrejaId === (usuario?.igrejaId || 1)
+  )
+
+  const pedidoLucas = pedidosTroca[0] || { status: 'pendente' }
+  const pedidoRespondido = pedidoLucas.status !== 'pendente'
+
+  const ehLider = usuario?.tipoConta === 'lider' || usuario?.cargo?.toLowerCase().includes('líder')
+  const iniciaisAvatar = usuario?.nome
+    ? usuario.nome.split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'AN'
 
   // Checklist de Equipamentos do Altar
   const checklistEquipamentos = [
@@ -32,28 +64,35 @@ function Mais() {
     { item: 'Cabos XLR Balanceados de Reserva (4x)', setor: 'Acessórios', status: 'Verificar' }
   ]
 
+  // Salvar alteração de categoria feita pelo líder
+  function handleSalvarFuncaoMembro(e) {
+    e.preventDefault()
+    if (!membroEditando || !novaFuncaoMembro) return
+    alterarCategoriaIntegrante(membroEditando.id, novaFuncaoMembro)
+    setMembroEditando(null)
+    setNovaFuncaoMembro('')
+  }
+
+  // Executar revogação de acesso
+  function handleConfirmarRevogacao() {
+    if (!membroRevogando) return
+    revogarAcessoIntegrante(membroRevogando.id)
+    setMembroRevogando(null)
+  }
+
+  // Salvar função no perfil pessoal do próprio integrante
+  function handleSalvarMinhaFuncao(e) {
+    e.preventDefault()
+    atualizarMinhaFuncao(minhaFuncao)
+    setFeedbackPerfil(true)
+    setTimeout(() => {
+      setFeedbackPerfil(false)
+      setModalAtivo(null)
+    }, 1500)
+  }
+
   return (
     <div id="tela-mais">
-      {/* Barra de Status Mobile */}
-      <div className="status-bar">
-        <span className="status-time">9:41</span>
-        <div className="status-icons">
-          <svg className="icon-signal" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25A10.93 10.93 0 0 1 1 12C1 5.92 5.92 1 12 1s11 4.92 11 11c0 2.37-.75 4.57-2.03 6.36l-.63-.63A9.94 9.94 0 0 0 21 12c0-4.97-4.03-9-9-9z"/>
-            <path d="M12 7a5 5 0 0 0-5 5c0 1.25.46 2.39 1.22 3.28l.71-.71A3.98 3.98 0 0 1 8 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4c0 .93-.32 1.79-.86 2.47l.71.71A4.97 4.97 0 0 0 17 12a5 5 0 0 0-5-5z"/>
-            <circle cx="12" cy="12" r="1.5"/>
-          </svg>
-          <svg className="icon-wifi" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98A17.88 17.88 0 0 0 12 4z"/>
-          </svg>
-          <svg className="icon-battery" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="2" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-            <rect x="4" y="8" width="12" height="8" rx="1"/>
-            <path d="M21 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-      </div>
-
       {/* Conteúdo com rolagem */}
       <div className="mais-scroll-content">
         {/* Topo / Header */}
@@ -68,35 +107,41 @@ function Mais() {
         </header>
 
         {/* Card do Perfil do Ministro */}
-        <section className="card-perfil-usuario">
+        <section className="card-perfil-usuario" onClick={() => setModalAtivo('meu_perfil')}>
           <div className="perfil-avatar-wrapper">
             <div className="avatar-circulo">
-              <span>AN</span>
+              <span>{iniciaisAvatar}</span>
             </div>
             <span className="badge-online"></span>
           </div>
           <div className="perfil-info">
             <div className="perfil-nome-row">
-              <h3>Anderson Neres</h3>
-              <span className="badge-cargo">Líder</span>
+              <h3>{usuario?.nome || 'Anderson Neres'}</h3>
+              <span className="badge-cargo">{usuario?.cargo || (ehLider ? 'Líder' : 'Voluntário')}</span>
             </div>
-            <p className="perfil-funcao">Ministro de Louvor & Teclado</p>
-            <span className="perfil-campus">Cruz Church • Campus Central</span>
+            <p className="perfil-funcao">{usuario?.funcao || 'Ministro de Louvor'}</p>
+            <span className="perfil-campus">{usuario?.campus || 'Cruz Church • Campus Central'}</span>
           </div>
+          <button type="button" className="btn-editar-perfil-atalho" title="Editar Perfil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </button>
         </section>
 
         {/* Card de Minha Disponibilidade */}
         <section className="card-disponibilidade">
           <div className="disponibilidade-texto">
             <div className="disp-titulo-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke={disponivel ? '#10b981' : '#f59e0b'} strokeWidth="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke={usuario?.disponivel ? '#10b981' : '#f59e0b'} strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 14 14" />
               </svg>
               <h4>Disponível para escalas</h4>
             </div>
             <p className="disp-sub">
-              {disponivel
+              {usuario?.disponivel
                 ? 'Você está elegível para escalas de cultos e ensaios.'
                 : 'Você marcou indisponibilidade temporária neste mês.'}
             </p>
@@ -104,8 +149,8 @@ function Mais() {
           <label className="toggle-switch">
             <input
               type="checkbox"
-              checked={disponivel}
-              onChange={() => setDisponivel(!disponivel)}
+              checked={!!usuario?.disponivel}
+              onChange={toggleDisponibilidade}
             />
             <span className="slider"></span>
           </label>
@@ -115,10 +160,37 @@ function Mais() {
         <section className="grupo-menu">
           <h4 className="grupo-titulo">Gestão do Ministério</h4>
           <div className="cards-lista-menu">
+            {/* Painel do Administrador Geral (Exibido para Admin) */}
+            {(usuario?.tipoConta === 'admin' || usuario?.cargo === 'ADMIN') && (
+              <Link to="/admin" className="menu-item-card" style={{ borderLeft: '4px solid #2563eb', background: '#f8fafc' }}>
+                <div className="menu-icon-wrapper" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="9" />
+                    <rect x="14" y="3" width="7" height="5" />
+                    <rect x="14" y="12" width="7" height="9" />
+                    <rect x="3" y="16" width="7" height="5" />
+                  </svg>
+                </div>
+                <div className="menu-item-info">
+                  <div className="menu-item-titulo-row">
+                    <span className="menu-item-titulo" style={{ color: '#1e40af', fontWeight: 700 }}>Painel ADMIN Geral</span>
+                    <span className="badge-alerta-menu" style={{ backgroundColor: '#2563eb' }}>ADMIN</span>
+                  </div>
+                  <span className="menu-item-sub">Homologações, congregações e líderes</span>
+                </div>
+                <svg className="menu-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Link>
+            )}
+
             {/* Equipe e Voluntários */}
             <button
               className="menu-item-card"
-              onClick={() => setModalAtivo('equipe')}
+              onClick={() => {
+                setAbaEquipe(solicitacoesPendentesIgreja.length > 0 && ehLider ? 'solicitacoes' : 'membros')
+                setModalAtivo('equipe')
+              }}
             >
               <div className="menu-icon-wrapper blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -129,8 +201,16 @@ function Mais() {
                 </svg>
               </div>
               <div className="menu-item-info">
-                <span className="menu-item-titulo">Equipe & Integrantes</span>
-                <span className="menu-item-sub">18 membros cadastrados</span>
+                <div className="menu-item-titulo-row">
+                  <span className="menu-item-titulo">Equipe & Integrantes</span>
+                  {solicitacoesPendentesIgreja.length > 0 && ehLider && (
+                    <span className="badge-alerta-menu">{solicitacoesPendentesIgreja.length} novo(s)</span>
+                  )}
+                </div>
+                <span className="menu-item-sub">
+                  {equipeMembros.length} membros ativos
+                  {solicitacoesPendentesIgreja.length > 0 ? ` • ${solicitacoesPendentesIgreja.length} solicitação pendente` : ''}
+                </span>
               </div>
               <svg className="menu-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="9 18 15 12 9 6" />
@@ -152,7 +232,9 @@ function Mais() {
               <div className="menu-item-info">
                 <div className="menu-item-titulo-row">
                   <span className="menu-item-titulo">Trocas de Escala</span>
-                  {!pedidoRespondido && <span className="badge-alerta-menu">1 pendente</span>}
+                  {totalTrocasPendentes > 0 && (
+                    <span className="badge-alerta-menu">{totalTrocasPendentes} pendente</span>
+                  )}
                 </div>
                 <span className="menu-item-sub">Solicitações de substituição</span>
               </div>
@@ -182,6 +264,27 @@ function Mais() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
+
+            {/* Painel do Administrador Geral */}
+            <Link to="/admin" className="menu-item-card">
+              <div className="menu-icon-wrapper blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div className="menu-item-info">
+                <div className="menu-item-titulo-row">
+                  <span className="menu-item-titulo">Painel ADMIN Geral</span>
+                  {totalSolicitacoesLideresPendentes > 0 && (
+                    <span className="badge-alerta-menu">{totalSolicitacoesLideresPendentes} pendente(s)</span>
+                  )}
+                </div>
+                <span className="menu-item-sub">Homologação de líderes e congregações</span>
+              </div>
+              <svg className="menu-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </Link>
           </div>
         </section>
 
@@ -231,8 +334,54 @@ function Mais() {
 
         {/* GRUPO 3: CONFIGURAÇÕES E SISTEMA */}
         <section className="grupo-menu">
-          <h4 className="grupo-titulo">Configurações & Conta</h4>
+          <h4 className="grupo-titulo">Configurações & Perfil</h4>
           <div className="cards-lista-menu">
+            {/* Meu Perfil & Função Musical */}
+            <button
+              className="menu-item-card"
+              onClick={() => {
+                setMinhaFuncao(usuario?.funcao || 'Vocal Líder')
+                setModalAtivo('meu_perfil')
+              }}
+            >
+              <div className="menu-icon-wrapper blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <div className="menu-item-info">
+                <span className="menu-item-titulo">Minha Função Musical</span>
+                <span className="menu-item-sub">{usuario?.funcao || 'Definir instrumento/voz'}</span>
+              </div>
+              <svg className="menu-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+
+            {/* Alternar Perfil de Teste (Simulador) */}
+            <button
+              className="menu-item-card"
+              onClick={() => setModalAtivo('simulador')}
+            >
+              <div className="menu-icon-wrapper purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="16 3 21 3 21 8" />
+                  <line x1="4" y1="20" x2="21" y2="3" />
+                  <polyline points="21 16 21 21 16 21" />
+                  <line x1="15" y1="15" x2="21" y2="21" />
+                  <line x1="4" y1="4" x2="9" y2="9" />
+                </svg>
+              </div>
+              <div className="menu-item-info">
+                <span className="menu-item-titulo">Simulador de Permissões</span>
+                <span className="menu-item-sub">Testar como Líder ou Voluntário</span>
+              </div>
+              <svg className="menu-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+
             {/* Notificações */}
             <div className="menu-item-card item-toggle">
               <div className="menu-icon-wrapper blue">
@@ -248,8 +397,8 @@ function Mais() {
               <label className="toggle-switch">
                 <input
                   type="checkbox"
-                  checked={notificacoesAtivas}
-                  onChange={() => setNotificacoesAtivas(!notificacoesAtivas)}
+                  checked={!!usuario?.notificacoes}
+                  onChange={toggleNotificacoes}
                 />
                 <span className="slider"></span>
               </label>
@@ -269,8 +418,8 @@ function Mais() {
               <label className="toggle-switch">
                 <input
                   type="checkbox"
-                  checked={temaEscuro}
-                  onChange={() => setTemaEscuro(!temaEscuro)}
+                  checked={!!usuario?.temaEscuro}
+                  onChange={toggleTemaEscuro}
                 />
                 <span className="slider"></span>
               </label>
@@ -299,34 +448,415 @@ function Mais() {
         {/* Rodapé Informativo */}
         <div className="mais-rodape-versao">
           <span>Cruz Church • Sistema de Escalas de Louvor</span>
-          <span className="versao-texto">Versão 1.0.0 (Front-end Prototype)</span>
+          <span className="versao-texto">Versão 1.1.0 • Gestão de Acessos & Integrantes</span>
         </div>
       </div>
 
-      {/* MODAL: EQUIPE & INTEGRANTES */}
+      {/* ====================================================================
+          MODAL: EQUIPE & GERENCIAMENTO DE INTEGRANTES (COM ABAS E CONTROLE)
+          ==================================================================== */}
       {modalAtivo === 'equipe' && (
+        <div className="modal-backdrop" onClick={() => setModalAtivo(null)}>
+          <div className="modal-sheet modal-equipe-expandido" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-drag-indicator"></div>
+            <div className="modal-header">
+              <div>
+                <h3>Gestão de Integrantes</h3>
+                <span className="modal-sub-campus">{usuario?.campus || 'Cruz Church — Campus Central'}</span>
+              </div>
+              <button className="btn-fechar-modal" onClick={() => setModalAtivo(null)}>✕</button>
+            </div>
+
+            {/* Seletor de Abas: Membros Ativos vs Solicitações Pendentes */}
+            <div className="modal-abas-equipe">
+              <button
+                type="button"
+                className={`btn-aba-equipe ${abaEquipe === 'membros' ? 'ativo' : ''}`}
+                onClick={() => setAbaEquipe('membros')}
+              >
+                <span>Membros Ativos ({equipeMembros.length})</span>
+              </button>
+              <button
+                type="button"
+                className={`btn-aba-equipe ${abaEquipe === 'solicitacoes' ? 'ativo' : ''}`}
+                onClick={() => setAbaEquipe('solicitacoes')}
+              >
+                <span>Solicitações Pendentes</span>
+                {solicitacoesPendentesIgreja.length > 0 && (
+                  <span className="badge-aba-contador">{solicitacoesPendentesIgreja.length}</span>
+                )}
+              </button>
+            </div>
+
+            {/* ABA 1: MEMBROS ATIVOS */}
+            {abaEquipe === 'membros' && (
+              <div className="conteudo-aba-equipe">
+                <div className="equipe-lista-modal">
+                  {equipeMembros.map((membro) => (
+                    <div key={membro.id} className="equipe-item-card-gerenciamento">
+                      <div className="equipe-avatar">
+                        <span>{membro.avatar || membro.nome.substring(0, 2).toUpperCase()}</span>
+                      </div>
+                      <div className="equipe-dados">
+                        <span className="equipe-nome">{membro.nome}</span>
+                        <div className="equipe-funcao-linha">
+                          <span className="equipe-cargo">{membro.funcao}</span>
+                          <span className="badge-naipe">{membro.naipe}</span>
+                        </div>
+                        {membro.email && (
+                          <span className="equipe-email-sub">{membro.email}</span>
+                        )}
+                      </div>
+
+                      {/* Ações do Líder para cada membro */}
+                      {ehLider && (
+                        <div className="equipe-acoes-lider">
+                          <button
+                            type="button"
+                            className="btn-acao-membro editar"
+                            title="Alterar Função Musical"
+                            onClick={() => {
+                              setMembroEditando(membro)
+                              setNovaFuncaoMembro(membro.funcao)
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                            </svg>
+                            <span>Função</span>
+                          </button>
+
+                          {membro.id !== usuario?.id && (
+                            <button
+                              type="button"
+                              className="btn-acao-membro revogar"
+                              title="Revogar Acesso à Igreja"
+                              onClick={() => setMembroRevogando(membro)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                              </svg>
+                              <span>Revogar</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ABA 2: PEDIDOS PENDENTES DE VOLUNTÁRIOS */}
+            {abaEquipe === 'solicitacoes' && (
+              <div className="conteudo-aba-equipe">
+                {solicitacoesPendentesIgreja.length === 0 ? (
+                  <div className="estado-vazio-solicitacoes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    <h4>Tudo em dia!</h4>
+                    <p>Não há novas solicitações de voluntários aguardando aprovação para sua igreja.</p>
+                  </div>
+                ) : (
+                  <div className="solicitacoes-lista-cards">
+                    {solicitacoesPendentesIgreja.map((sol) => (
+                      <div key={sol.id} className="card-solicitacao-voluntario">
+                        <div className="sol-cabecalho">
+                          <div className="sol-avatar">
+                            {sol.nome.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="sol-info-pessoal">
+                            <strong className="sol-nome">{sol.nome}</strong>
+                            <span className="sol-email">{sol.email}</span>
+                            {sol.telefone && (
+                              <span className="sol-telefone">{sol.telefone}</span>
+                            )}
+                          </div>
+                          <span className="tag-aguardando-mini">Aguardando</span>
+                        </div>
+
+                        <div className="sol-detalhe-funcao">
+                          <div className="sol-funcao-box">
+                            <span className="rotulo-sol">Função Solicitada:</span>
+                            <span className="valor-sol">{sol.funcao}</span>
+                          </div>
+                          <span className="badge-naipe-sol">{sol.naipe}</span>
+                        </div>
+
+                        {ehLider ? (
+                          <div className="sol-botoes-decisao">
+                            <button
+                              type="button"
+                              className="btn-aprovar-sol"
+                              onClick={() => aprovarVoluntario(sol.id)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              <span>Aprovar Integrante</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn-recusar-sol"
+                              onClick={() => recusarVoluntario(sol.id)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                              <span>Recusar</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="aviso-somente-lider">
+                            Apenas o líder de louvor desta igreja pode aprovar ou recusar pedidos.
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          SUB-MODAL: AJUSTAR CATEGORIA MUSICAL PELO LÍDER
+          ==================================================================== */}
+      {membroEditando && (
+        <div className="modal-backdrop submodal" onClick={() => setMembroEditando(null)}>
+          <div className="modal-sheet submodal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-drag-indicator"></div>
+            <div className="modal-header">
+              <h3>Ajustar Categoria Musical</h3>
+              <button className="btn-fechar-modal" onClick={() => setMembroEditando(null)}>✕</button>
+            </div>
+            <p className="modal-sub">
+              Definir função ministerial de <strong>{membroEditando.nome}</strong> na equipe:
+            </p>
+
+            <form onSubmit={handleSalvarFuncaoMembro} className="form-ajuste-funcao">
+              <label htmlFor="select-funcao-lider">Selecione a nova função:</label>
+              <select
+                id="select-funcao-lider"
+                value={novaFuncaoMembro}
+                onChange={(e) => setNovaFuncaoMembro(e.target.value)}
+                className="select-custom-funcao"
+                required
+              >
+                {CATEGORIAS_MUSICAIS.map(cat => (
+                  <optgroup key={cat.naipe} label={`— ${cat.naipe} —`}>
+                    {cat.funcoes.map(f => (
+                      <option key={f} value={f}>
+                        {f}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+
+              <div className="botoes-form-funcao">
+                <button type="submit" className="btn-salvar-funcao">
+                  Salvar Alteração
+                </button>
+                <button type="button" className="btn-cancelar-modal" onClick={() => setMembroEditando(null)}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          SUB-MODAL: CONFIRMAR REVOGAÇÃO DE ACESSO DE INTEGRANTE
+          ==================================================================== */}
+      {membroRevogando && (
+        <div className="modal-backdrop submodal" onClick={() => setMembroRevogando(null)}>
+          <div className="modal-sheet sheet-alerta" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-drag-indicator"></div>
+            <div className="icone-alerta-revogar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h3>Revogar Acesso à Igreja?</h3>
+            <p className="modal-sub">
+              Deseja desvincular <strong>{membroRevogando.nome}</strong> da equipe desta igreja?
+            </p>
+            <div className="box-regra-seguranca">
+              <strong>Regra de Segurança:</strong> O acesso às escalas e áreas internas desta igreja será imediatamente revogado, sem excluir a conta do usuário nem o histórico anterior de eventos.
+            </div>
+
+            <div className="modal-alerta-acoes">
+              <button
+                type="button"
+                className="btn-confirmar-sair"
+                onClick={handleConfirmarRevogacao}
+              >
+                Sim, revogar acesso
+              </button>
+              <button
+                type="button"
+                className="btn-cancelar-sair"
+                onClick={() => setMembroRevogando(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODAL: MEU PERFIL & MINHA FUNÇÃO MUSICAL
+          ==================================================================== */}
+      {modalAtivo === 'meu_perfil' && (
         <div className="modal-backdrop" onClick={() => setModalAtivo(null)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-drag-indicator"></div>
             <div className="modal-header">
-              <h3>Equipe Ministerial ({equipeMembros.length})</h3>
+              <h3>Meu Perfil Ministerial</h3>
               <button className="btn-fechar-modal" onClick={() => setModalAtivo(null)}>✕</button>
             </div>
-            <p className="modal-sub">Membros e voluntários cadastrados no louvor</p>
 
-            <div className="equipe-lista-modal">
-              {equipeMembros.map((membro) => (
-                <div key={membro.id} className="equipe-item-card">
-                  <div className="equipe-avatar">
-                    <span>{membro.avatar}</span>
-                  </div>
-                  <div className="equipe-dados">
-                    <span className="equipe-nome">{membro.nome}</span>
-                    <span className="equipe-cargo">{membro.funcao}</span>
-                  </div>
-                  <span className="badge-naipe">{membro.naipe}</span>
+            <div className="card-perfil-resumo">
+              <div className="resumo-avatar">{iniciaisAvatar}</div>
+              <div className="resumo-info">
+                <strong>{usuario?.nome}</strong>
+                <span>{usuario?.email || 'email@cruzchurch.com'}</span>
+                <span className="badge-cargo-mini">{usuario?.cargo || (ehLider ? 'Líder' : 'Voluntário')}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSalvarMinhaFuncao} className="form-meu-perfil">
+              <label htmlFor="select-minha-funcao">
+                Minha Função Musical Principal
+              </label>
+              <select
+                id="select-minha-funcao"
+                value={minhaFuncao}
+                onChange={(e) => setMinhaFuncao(e.target.value)}
+                className="select-custom-funcao"
+              >
+                {CATEGORIAS_MUSICAIS.map(cat => (
+                  <optgroup key={cat.naipe} label={`— ${cat.naipe} —`}>
+                    {cat.funcoes.map(f => (
+                      <option key={f} value={f}>
+                        {f}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <span className="ajuda-perfil">
+                Utilize as categorias musicais oficiais para manter seu cadastro atualizado.
+              </span>
+
+              {feedbackPerfil && (
+                <div className="feedback-sucesso-perfil">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Função atualizada com sucesso!</span>
                 </div>
-              ))}
+              )}
+
+              <button type="submit" className="btn-salvar-funcao">
+                Salvar Alterações
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODAL: SIMULADOR DE PERFIS (TESTES DE PERMISSÕES)
+          ==================================================================== */}
+      {modalAtivo === 'simulador' && (
+        <div className="modal-backdrop" onClick={() => setModalAtivo(null)}>
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-drag-indicator"></div>
+            <div className="modal-header">
+              <h3>Simulador de Perfis</h3>
+              <button className="btn-fechar-modal" onClick={() => setModalAtivo(null)}>✕</button>
+            </div>
+            <p className="modal-sub">
+              Alterne de perfil para testar permissões de líder vs voluntário:
+            </p>
+
+            <div className="simulador-grid-modal">
+              <button
+                type="button"
+                className={`btn-simulador-opcao ${usuario?.tipoConta === 'lider' ? 'ativo' : ''}`}
+                onClick={() => {
+                  alternarPerfilVisual('lider')
+                  setModalAtivo(null)
+                }}
+              >
+                <div className="sim-icone blue">👑</div>
+                <div className="sim-texto">
+                  <strong>Líder de Louvor (Anderson Neres)</strong>
+                  <span>Aprova voluntários, altera funções e gerencia escalas</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`btn-simulador-opcao ${usuario?.tipoConta === 'voluntario' && usuario?.statusAcesso === 'aprovado' ? 'ativo' : ''}`}
+                onClick={() => {
+                  alternarPerfilVisual('voluntario_aprovado')
+                  setModalAtivo(null)
+                }}
+              >
+                <div className="sim-icone green">🎤</div>
+                <div className="sim-texto">
+                  <strong>Voluntária Aprovada (Sarah Menezes)</strong>
+                  <span>Acessa escalas, repertório e edita função própria</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="btn-simulador-opcao"
+                onClick={() => {
+                  alternarPerfilVisual('voluntario_pendente')
+                  setModalAtivo(null)
+                  navigate('/aguardando-aprovacao')
+                }}
+              >
+                <div className="sim-icone orange">⏳</div>
+                <div className="sim-texto">
+                  <strong>Voluntário Pendente (Carlos Eduardo)</strong>
+                  <span>Simula tela de bloqueio e aguardo de aprovação</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`btn-simulador-opcao ${usuario?.tipoConta === 'admin' ? 'ativo' : ''}`}
+                onClick={() => {
+                  alternarPerfilVisual('admin')
+                  setModalAtivo(null)
+                  navigate('/admin')
+                }}
+              >
+                <div className="sim-icone blue">👑</div>
+                <div className="sim-texto">
+                  <strong>Administrador Geral (LouvorApp ADMIN)</strong>
+                  <span>Homologa novos líderes, congregações e acessa painel geral</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -358,13 +888,13 @@ function Mais() {
                 <div className="pedido-acoes">
                   <button
                     className="btn-aceitar-troca"
-                    onClick={() => setPedidoRespondido(true)}
+                    onClick={() => responderPedidoTroca(pedidoLucas.id, true)}
                   >
                     Aceitar Troca
                   </button>
                   <button
                     className="btn-recusar-troca"
-                    onClick={() => setPedidoRespondido(true)}
+                    onClick={() => responderPedidoTroca(pedidoLucas.id, false)}
                   >
                     Não posso
                   </button>
@@ -445,7 +975,14 @@ function Mais() {
             <h3>Deseja realmente sair?</h3>
             <p className="modal-sub">Você precisará fazer login novamente para acessar suas escalas.</p>
             <div className="modal-alerta-acoes">
-              <button className="btn-confirmar-sair" onClick={() => setModalAtivo(null)}>
+              <button
+                className="btn-confirmar-sair"
+                onClick={() => {
+                  setModalAtivo(null)
+                  logout()
+                  navigate('/login')
+                }}
+              >
                 Sim, sair
               </button>
               <button className="btn-cancelar-sair" onClick={() => setModalAtivo(null)}>

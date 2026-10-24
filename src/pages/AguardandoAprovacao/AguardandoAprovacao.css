@@ -1,0 +1,384 @@
+/* ==========================================================================
+   TELA AGUARDANDO APROVAÇÃO (SCOPED #tela-aguardando)
+   ========================================================================== */
+
+#tela-aguardando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #070d1a 0%, #0c1830 50%, #060b17 100%);
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+#tela-aguardando .aguardando-container {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#tela-aguardando .aguardando-logo-wrapper {
+  margin-bottom: 4px;
+}
+
+#tela-aguardando .aguardando-logo-wrapper .cruz-svg {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px -4px rgba(30, 94, 200, 0.55);
+}
+
+/* Card Central */
+#tela-aguardando .card-status-central {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+/* Ícones Animados */
+#tela-aguardando .icone-status-animado {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  animation: pulsarIcone 2.4s infinite ease-in-out;
+}
+
+#tela-aguardando .icone-status-animado svg {
+  width: 32px;
+  height: 32px;
+}
+
+#tela-aguardando .icone-status-animado.pendente {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 2px solid rgba(245, 158, 11, 0.4);
+}
+
+#tela-aguardando .icone-status-animado.lider {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border: 2px solid rgba(139, 92, 246, 0.4);
+}
+
+#tela-aguardando .icone-status-animado.recusado {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 2px solid rgba(239, 68, 68, 0.4);
+}
+
+#tela-aguardando .icone-status-animado.revogado {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 2px solid rgba(148, 163, 184, 0.4);
+}
+
+@keyframes pulsarIcone {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+}
+
+/* Tags de Status */
+#tela-aguardando .tag-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+#tela-aguardando .tag-status.pendente {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+#tela-aguardando .tag-status.lider {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+#tela-aguardando .tag-status.recusado {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+#tela-aguardando .tag-status.revogado {
+  background: rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+#tela-aguardando .card-status-central h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.01em;
+}
+
+#tela-aguardando .texto-status {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  margin: 0 0 18px 0;
+  line-height: 1.5;
+}
+
+#tela-aguardando .texto-status strong {
+  color: #ffffff;
+}
+
+/* Box de Detalhes */
+#tela-aguardando .box-detalhes-pedido {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+#tela-aguardando .linha-detalhe {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+#tela-aguardando .detalhe-rotulo {
+  color: #94a3b8;
+}
+
+#tela-aguardando .detalhe-valor {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+#tela-aguardando .destaque-amarelo {
+  color: #fbbf24;
+}
+
+#tela-aguardando .recusado-box,
+#tela-aguardando .revogado-box {
+  text-align: left;
+}
+
+#tela-aguardando .recusado-box p,
+#tela-aguardando .revogado-box p {
+  font-size: 0.84rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 0 0 8px 0;
+}
+
+#tela-aguardando .contato-aviso {
+  color: #fca5a5 !important;
+  font-weight: 500;
+  margin: 0 !important;
+}
+
+#tela-aguardando .nota-rodape-status {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0 0 20px 0;
+}
+
+/* Ações */
+#tela-aguardando .acoes-aguardando {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#tela-aguardando .btn-verificar-status {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px -2px rgba(37, 99, 235, 0.4);
+  transition: all 0.2s ease;
+}
+
+#tela-aguardando .btn-verificar-status:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+#tela-aguardando .btn-verificar-status:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+#tela-aguardando .btn-verificar-status svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-aguardando .spinner-aguardando {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: girarSpinAguard 0.8s linear infinite;
+}
+
+@keyframes girarSpinAguard {
+  to { transform: rotate(360deg); }
+}
+
+#tela-aguardando .btn-sair-conta {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#tela-aguardando .btn-sair-conta:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
+}
+
+/* Simulador de Demonstração */
+#tela-aguardando .bloco-demonstracao {
+  width: 100%;
+}
+
+#tela-aguardando .btn-toggle-simulador {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#tela-aguardando .btn-toggle-simulador:hover {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+#tela-aguardando .btn-toggle-simulador svg {
+  width: 16px;
+  height: 16px;
+}
+
+#tela-aguardando .caixa-simulador {
+  margin-top: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(10px);
+}
+
+#tela-aguardando .simulador-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+  text-align: center;
+}
+
+#tela-aguardando .botoes-simulador-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#tela-aguardando .btn-sim-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+#tela-aguardando .btn-sim-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+#tela-aguardando .btn-sim-card.lider strong {
+  color: #60a5fa;
+  font-size: 0.88rem;
+}
+
+#tela-aguardando .btn-sim-card.voluntario strong {
+  color: #34d399;
+  font-size: 0.88rem;
+}
+
+#tela-aguardando .btn-sim-card span {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}

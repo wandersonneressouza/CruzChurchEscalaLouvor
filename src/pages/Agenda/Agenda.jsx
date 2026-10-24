@@ -1,10 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAppContext } from '../../context/AppContext'
 import './Agenda.css'
 
 function Agenda() {
+  const { escalas, totalEscalasPendentes, confirmarPresenca, solicitarSubstituicao, usuario } = useAppContext()
   const [abaAtiva, setAbaAtiva] = useState('calendario')
   const [diaSelecionado, setDiaSelecionado] = useState(26)
+
+  // Escala atual do usuário para o culto do dia 26
+  const escalaDomingo = escalas.find(e => e.id === 1) || { status: 'pendente' }
 
   // Dias de outubro de 2026 para a grade do calendário
   const diasMes = [
@@ -23,26 +28,6 @@ function Agenda() {
 
   return (
     <div id="tela-agenda">
-      {/* Barra de Status Mobile */}
-      <div className="status-bar">
-        <span className="status-time">9:41</span>
-        <div className="status-icons">
-          <svg className="icon-signal" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25A10.93 10.93 0 0 1 1 12C1 5.92 5.92 1 12 1s11 4.92 11 11c0 2.37-.75 4.57-2.03 6.36l-.63-.63A9.94 9.94 0 0 0 21 12c0-4.97-4.03-9-9-9z"/>
-            <path d="M12 7a5 5 0 0 0-5 5c0 1.25.46 2.39 1.22 3.28l.71-.71A3.98 3.98 0 0 1 8 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4c0 .93-.32 1.79-.86 2.47l.71.71A4.97 4.97 0 0 0 17 12a5 5 0 0 0-5-5z"/>
-            <circle cx="12" cy="12" r="1.5"/>
-          </svg>
-          <svg className="icon-wifi" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98A17.88 17.88 0 0 0 12 4z"/>
-          </svg>
-          <svg className="icon-battery" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="2" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-            <rect x="4" y="8" width="12" height="8" rx="1"/>
-            <path d="M21 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-      </div>
-
       {/* Conteúdo com rolagem */}
       <div className="agenda-scroll-content">
         {/* Topo / Header */}
@@ -238,8 +223,16 @@ function Agenda() {
                   </svg>
                 </div>
                 <div className="alerta-texto">
-                  <h4>Você tem 2 escalas pendentes</h4>
-                  <p>Confirme sua presença ou solicite substituição.</p>
+                  <h4>
+                    {totalEscalasPendentes > 0
+                      ? `Você tem ${totalEscalasPendentes} escala${totalEscalasPendentes > 1 ? 's' : ''} pendente${totalEscalasPendentes > 1 ? 's' : ''}`
+                      : 'Todas as suas escalas estão confirmadas!'}
+                  </h4>
+                  <p>
+                    {totalEscalasPendentes > 0
+                      ? 'Confirme sua presença ou solicite substituição.'
+                      : 'Nenhuma pendência para os próximos cultos.'}
+                  </p>
                 </div>
                 <div className="alerta-seta">
                   <svg viewBox="0 0 24 24" fill="none" stroke="#1e5ec8" strokeWidth="2.5">
@@ -328,15 +321,23 @@ function Agenda() {
                 <span className="status-badge confirmado">Confirmado</span>
               </div>
 
-              <div className="membro-linha pendente-card">
+              <div className={`membro-linha ${escalaDomingo.status === 'pendente' ? 'pendente-card' : ''}`}>
                 <div className="membro-detalhe">
-                  <strong>Wanderson Neres (Você)</strong>
-                  <span>Violão</span>
+                  <strong>{usuario?.nome || 'Anderson Neres'} (Você)</strong>
+                  <span>Teclado Principal</span>
                 </div>
-                <div className="membro-acoes">
-                  <button className="btn-confirmar">Confirmar</button>
-                  <button className="btn-substituir">Substituir</button>
-                </div>
+                {escalaDomingo.status === 'confirmado' && (
+                  <span className="status-badge confirmado">✓ Confirmado</span>
+                )}
+                {escalaDomingo.status === 'substituicao' && (
+                  <span className="status-badge pendente">Substituição Solicitada</span>
+                )}
+                {escalaDomingo.status === 'pendente' && (
+                  <div className="membro-acoes">
+                    <button className="btn-confirmar" onClick={() => confirmarPresenca(1)}>Confirmar</button>
+                    <button className="btn-substituir" onClick={() => solicitarSubstituicao(1)}>Substituir</button>
+                  </div>
+                )}
               </div>
 
               <div className="membro-linha">

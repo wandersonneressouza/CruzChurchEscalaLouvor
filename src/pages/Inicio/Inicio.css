@@ -10,30 +10,6 @@
   overflow: hidden;
 }
 
-/* Status Bar Mobile */
-#tela-inicio .status-bar {
-  height: 40px;
-  padding: 10px 22px 0 22px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  user-select: none;
-}
-
-#tela-inicio .status-icons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-#tela-inicio .status-icons svg {
-  width: 16px;
-  height: 16px;
-}
-
 /* Conteúdo com Scroll */
 #tela-inicio .inicio-scroll-content {
   flex: 1;
@@ -138,6 +114,69 @@
   color: var(--text-secondary);
   font-weight: 500;
   margin-top: 4px;
+}
+
+/* Banner de Solicitações Pendentes (Líder) */
+#tela-inicio .banner-solicitacoes-pendentes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1.5px solid #fed7aa;
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.08);
+  transition: all 0.2s ease;
+}
+
+#tela-inicio .banner-solicitacoes-pendentes:hover {
+  transform: translateY(-1px);
+  border-color: #fdba74;
+  box-shadow: 0 6px 16px rgba(234, 88, 12, 0.12);
+}
+
+#tela-inicio .icone-alerta-banner {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: #f97316;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-inicio .icone-alerta-banner svg {
+  width: 20px;
+  height: 20px;
+}
+
+#tela-inicio .texto-alerta-banner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#tela-inicio .texto-alerta-banner strong {
+  font-size: 13px;
+  color: #9a3412;
+  font-weight: 700;
+}
+
+#tela-inicio .texto-alerta-banner span {
+  font-size: 11.5px;
+  color: #c2410c;
+}
+
+#tela-inicio .seta-alerta-banner {
+  width: 16px;
+  height: 16px;
+  color: #ea580c;
+  flex-shrink: 0;
 }
 
 /* Card Principal: Próximo Culto */

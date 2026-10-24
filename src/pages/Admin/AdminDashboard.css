@@ -1,0 +1,1718 @@
+/* ==========================================================================
+   PAINEL DO ADMINISTRADOR GERAL (SCOPED #tela-admin-dashboard)
+   Design: Tema Claro, Limpo, Profissional e Totalmente Responsivo
+   ========================================================================== */
+
+#tela-admin-dashboard {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   1. HEADER DO ADMIN (RESPONSIVO)
+   ========================================================================== */
+#tela-admin-dashboard .admin-header-topo {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+#tela-admin-dashboard .admin-header-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .admin-header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .admin-marca-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#tela-admin-dashboard .admin-logo-simbolo {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .admin-logo-simbolo svg {
+  width: 100%;
+  height: 100%;
+}
+
+#tela-admin-dashboard .admin-marca-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#tela-admin-dashboard .marca-nome {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+#tela-admin-dashboard .badge-admin-tag {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+}
+
+#tela-admin-dashboard .admin-marca-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: block;
+}
+
+/* Menu de Navegação Horizontal Fluido */
+#tela-admin-dashboard .admin-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+#tela-admin-dashboard .admin-nav-menu::-webkit-scrollbar {
+  display: none;
+}
+
+#tela-admin-dashboard .btn-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .btn-nav-item:hover {
+  color: #0f172a;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+#tela-admin-dashboard .btn-nav-item.ativo {
+  background-color: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+#tela-admin-dashboard .btn-nav-item svg {
+  width: 16px;
+  height: 16px;
+}
+
+#tela-admin-dashboard .pill-alerta-nav {
+  background-color: #f59e0b;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 12px;
+}
+
+/* Bloco do Usuário à Direita */
+#tela-admin-dashboard .admin-usuario-bloco {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#tela-admin-dashboard .btn-ir-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .btn-ir-app:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+#tela-admin-dashboard .btn-ir-app svg {
+  width: 15px;
+  height: 15px;
+  color: #2563eb;
+}
+
+#tela-admin-dashboard .admin-perfil-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 8px;
+  border-left: 1px solid #e2e8f0;
+}
+
+#tela-admin-dashboard .avatar-admin-circulo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #1e40af;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .admin-perfil-dados {
+  display: flex;
+  flex-direction: column;
+}
+
+#tela-admin-dashboard .admin-perfil-dados strong {
+  font-size: 0.82rem;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .email-chip-sub {
+  font-size: 0.7rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .btn-sair-admin {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .btn-sair-admin:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+#tela-admin-dashboard .btn-sair-admin svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==========================================================================
+   2. CORPO PRINCIPAL DO ADMIN (FLUIDO E RESPONSIVO)
+   ========================================================================== */
+#tela-admin-dashboard .admin-corpo-conteudo {
+  flex: 1;
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   3. INDICADORES DA TELA INICIAL (4 CARDS)
+   ========================================================================== */
+#tela-admin-dashboard .grid-indicadores-admin {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+#tela-admin-dashboard .card-metrica-admin {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .card-metrica-admin.card-pendentes-destaque {
+  border-color: #fde68a;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.08);
+}
+
+#tela-admin-dashboard .metrica-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#tela-admin-dashboard .metrica-titulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+#tela-admin-dashboard .metrica-icone {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .metrica-icone svg {
+  width: 18px;
+  height: 18px;
+}
+
+#tela-admin-dashboard .metrica-icone.blue {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+#tela-admin-dashboard .metrica-icone.green {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+#tela-admin-dashboard .metrica-icone.purple {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+}
+
+#tela-admin-dashboard .metrica-icone.orange {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+#tela-admin-dashboard .metrica-valor {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+#tela-admin-dashboard .texto-laranja {
+  color: #d97706;
+}
+
+#tela-admin-dashboard .metrica-rodape {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .destaque-verde {
+  color: #10b981;
+  font-weight: 700;
+}
+
+#tela-admin-dashboard .destaque-laranja {
+  color: #b45309;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   4. DESTAQUE: ANÁLISE E APROVAÇÃO DE SOLICITAÇÕES
+   ========================================================================== */
+#tela-admin-dashboard .secao-solicitacoes-destaque {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .secao-cabecalho-linha {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+#tela-admin-dashboard .titulo-com-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .titulo-com-tag h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+#tela-admin-dashboard .badge-tag-alerta {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .secao-subtitulo {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+/* Filtros em Pills */
+#tela-admin-dashboard .filtros-solicitacao-pills {
+  display: flex;
+  gap: 6px;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .btn-pill-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .btn-pill-filtro.ativo {
+  background-color: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+#tela-admin-dashboard .contador-mini {
+  background-color: #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+/* Grade de Cards de Solicitações */
+#tela-admin-dashboard .grade-cards-solicitacoes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+#tela-admin-dashboard .card-solicitacao-admin {
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .card-solicitacao-admin.pendente {
+  border-color: #fed7aa;
+  background: #ffffff;
+}
+
+#tela-admin-dashboard .card-solicitacao-admin.aprovado {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+#tela-admin-dashboard .card-solicitacao-admin.recusado {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+#tela-admin-dashboard .card-sol-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#tela-admin-dashboard .sol-dados-principais {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+#tela-admin-dashboard .sol-avatar-lider {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .sol-nome-solicitante {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  word-break: break-word;
+}
+
+#tela-admin-dashboard .sol-contato-linha {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+#tela-admin-dashboard .tag-status-sol {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .tag-status-sol.pendente {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+#tela-admin-dashboard .tag-status-sol.aprovado {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+#tela-admin-dashboard .tag-status-sol.recusado {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Box da Igreja Solicitada */
+#tela-admin-dashboard .sol-box-igreja {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .linha-info-igreja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .rotulo-campo {
+  color: #64748b;
+}
+
+#tela-admin-dashboard .valor-campo {
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .linha-observacao {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+#tela-admin-dashboard .linha-observacao p {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: #334155;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+#tela-admin-dashboard .data-solicitacao-texto {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Ações de Homologação */
+#tela-admin-dashboard .sol-acoes-admin {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+#tela-admin-dashboard .btn-acao-admin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .btn-acao-admin.aprovar {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+}
+
+#tela-admin-dashboard .btn-acao-admin.aprovar:hover {
+  background-color: #1d4ed8;
+}
+
+#tela-admin-dashboard .btn-acao-admin.recusar {
+  background-color: #ffffff;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+#tela-admin-dashboard .btn-acao-admin.recusar:hover {
+  background-color: #fef2f2;
+}
+
+#tela-admin-dashboard .btn-acao-admin svg {
+  width: 15px;
+  height: 15px;
+}
+
+#tela-admin-dashboard .sol-rodape-concluido {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 0 0;
+}
+
+#tela-admin-dashboard .info-concluida.aprovada {
+  color: #059669;
+}
+
+#tela-admin-dashboard .info-concluida.recusada {
+  color: #dc2626;
+}
+
+/* Estado Vazio */
+#tela-admin-dashboard .card-estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 16px;
+  gap: 8px;
+}
+
+#tela-admin-dashboard .card-estado-vazio svg {
+  width: 48px;
+  height: 48px;
+}
+
+#tela-admin-dashboard .card-estado-vazio h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+#tela-admin-dashboard .card-estado-vazio p {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ==========================================================================
+   5. SEÇÃO: IGREJAS CADASTRADAS
+   ========================================================================== */
+#tela-admin-dashboard .secao-topo-controles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .secao-topo-controles h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+#tela-admin-dashboard .controles-direita {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .input-busca-igreja {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#tela-admin-dashboard .input-busca-igreja svg {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+#tela-admin-dashboard .input-busca-igreja input {
+  padding: 9px 12px 9px 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  min-width: 260px;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .input-busca-igreja input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+#tela-admin-dashboard .btn-adicionar-igreja {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .btn-adicionar-igreja:hover {
+  background-color: #1d4ed8;
+}
+
+#tela-admin-dashboard .btn-adicionar-igreja svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Tabela Padrão Admin (Com Container Scrollável) */
+#tela-admin-dashboard .tabela-container-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .tabela-admin {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.86rem;
+}
+
+#tela-admin-dashboard .tabela-admin th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 700;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .tabela-admin td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+#tela-admin-dashboard .tabela-admin tr:last-child td {
+  border-bottom: none;
+}
+
+#tela-admin-dashboard .tabela-admin tr:hover td {
+  background-color: #f8fafc;
+}
+
+#tela-admin-dashboard .celula-igreja-nome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#tela-admin-dashboard .celula-igreja-nome strong {
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .icone-igreja-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .icone-igreja-mini svg {
+  width: 15px;
+  height: 15px;
+}
+
+#tela-admin-dashboard .celula-lider {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .badge-status-tabela {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .badge-status-tabela.ativa {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+#tela-admin-dashboard .badge-status-tabela.inativa {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+#tela-admin-dashboard .badge-naipe-tabela {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .botoes-tabela-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .btn-tabela-acao {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.editar {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.editar:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.desativar {
+  background-color: #ffffff;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.desativar:hover {
+  background-color: #fef2f2;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.ativar {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.ativar:hover {
+  background-color: #d1fae5;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.excluir-usuario {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#tela-admin-dashboard .btn-tabela-acao.excluir-usuario:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+#tela-admin-dashboard .badge-admin-atual {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+#tela-admin-dashboard .badge-tipo-conta {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+#tela-admin-dashboard .badge-tipo-conta.admin {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+#tela-admin-dashboard .badge-tipo-conta.lider {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+}
+
+#tela-admin-dashboard .badge-tipo-conta.voluntario {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+#tela-admin-dashboard .btn-acao-admin-excluir-mini {
+  background: none;
+  border: 1px dashed #fca5a5;
+  color: #dc2626;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+#tela-admin-dashboard .btn-acao-admin-excluir-mini:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+
+/* ==========================================================================
+   6. SEÇÃO: LÍDERES APROVADOS (CARDS)
+   ========================================================================== */
+#tela-admin-dashboard .grade-cards-lideres {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+#tela-admin-dashboard .card-lider-gestor {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .lider-card-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#tela-admin-dashboard .avatar-lider-circulo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-admin-dashboard .lider-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#tela-admin-dashboard .lider-card-info strong {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .cargo-lider-tag {
+  font-size: 0.72rem;
+  color: #059669;
+  font-weight: 700;
+  background-color: #ecfdf5;
+  padding: 1px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+#tela-admin-dashboard .lider-vinculo-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.82rem;
+}
+
+#tela-admin-dashboard .lider-vinculo-box strong {
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .sub-cidade {
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+#tela-admin-dashboard .lider-acoes-rodape {
+  margin-top: auto;
+}
+
+#tela-admin-dashboard .btn-revogar-lideranca {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#tela-admin-dashboard .btn-revogar-lideranca:hover {
+  background-color: #fef2f2;
+}
+
+/* ==========================================================================
+   7. SIMULADOR NO RODAPÉ DO ADMIN
+   ========================================================================== */
+#tela-admin-dashboard .admin-simulador-container {
+  margin-top: 32px;
+  background-color: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .simulador-titulo-rodape {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+#tela-admin-dashboard .botoes-simulador-rodape {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .btn-chip-simulador {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+#tela-admin-dashboard .btn-chip-simulador:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+#tela-admin-dashboard .btn-chip-simulador.admin.ativo {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
+/* ==========================================================================
+   8. MODAIS DA ÁREA ADMIN (TOTALMENTE RESPONSIVOS)
+   ========================================================================== */
+#tela-admin-dashboard .modal-admin-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .modal-admin-caixa {
+  background-color: #ffffff;
+  border-radius: 14px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .modal-admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+#tela-admin-dashboard .modal-admin-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+#tela-admin-dashboard .modal-admin-sub {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+#tela-admin-dashboard .btn-fechar-admin {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+#tela-admin-dashboard .btn-fechar-admin:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+#tela-admin-dashboard .corpo-modal-aprovacao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#tela-admin-dashboard .resumo-solicitante-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .item-resumo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#tela-admin-dashboard .resumo-rotulo {
+  color: #64748b;
+}
+
+/* Opções de Vínculo de Igreja */
+#tela-admin-dashboard .secao-escolha-vinculo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#tela-admin-dashboard .label-destaque {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .opcoes-vinculo-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#tela-admin-dashboard .card-radio-vinculo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .card-radio-vinculo:hover {
+  background-color: #f8fafc;
+}
+
+#tela-admin-dashboard .card-radio-vinculo.selecionado {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+#tela-admin-dashboard .radio-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#tela-admin-dashboard .radio-texto strong {
+  font-size: 0.86rem;
+  color: #0f172a;
+}
+
+#tela-admin-dashboard .radio-texto span {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+#tela-admin-dashboard .select-igreja-wrapper {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#tela-admin-dashboard .select-igreja-wrapper label {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+#tela-admin-dashboard .select-admin-custom {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .modal-admin-rodape {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+#tela-admin-dashboard .btn-confirmar-aprovacao {
+  flex: 1;
+  padding: 11px 16px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .btn-confirmar-aprovacao:hover {
+  background-color: #1d4ed8;
+}
+
+#tela-admin-dashboard .btn-cancelar-admin {
+  padding: 11px 16px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .btn-cancelar-admin:hover {
+  background-color: #e2e8f0;
+}
+
+/* Modal Recusa */
+#tela-admin-dashboard .texto-aviso-recusa {
+  font-size: 0.86rem;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+#tela-admin-dashboard .form-campo-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#tela-admin-dashboard .form-campo-admin label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+#tela-admin-dashboard .form-campo-admin input,
+#tela-admin-dashboard .textarea-admin-custom {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .form-campo-admin input:focus,
+#tela-admin-dashboard .textarea-admin-custom:focus {
+  border-color: #2563eb;
+}
+
+#tela-admin-dashboard .btn-confirmar-recusa {
+  flex: 1;
+  padding: 11px 16px;
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+#tela-admin-dashboard .btn-confirmar-recusa:hover {
+  background-color: #b91c1c;
+}
+
+/* Toast Flutuante */
+#tela-admin-dashboard .toast-feedback-admin {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #0f172a;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  animation: slideToast 0.25s ease;
+}
+
+#tela-admin-dashboard .toast-feedback-admin svg {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes slideToast {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   9. BREAKPOINTS E REGRAS DE RESPONSIVIDADE ESPECÍFICAS
+   ========================================================================== */
+
+/* TABLETS E NOTEBOOKS MENORES (<= 1024px) */
+@media (max-width: 1024px) {
+  #tela-admin-dashboard .admin-corpo-conteudo {
+    padding: 20px 16px;
+  }
+
+  #tela-admin-dashboard .grid-indicadores-admin {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  #tela-admin-dashboard .grade-cards-solicitacoes {
+    grid-template-columns: 1fr;
+  }
+
+  #tela-admin-dashboard .grade-cards-lideres {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* TABLETS VERTICAIS E CELULARES GRANDES (<= 768px) */
+@media (max-width: 768px) {
+  #tela-admin-dashboard .admin-header-container {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  #tela-admin-dashboard .admin-header-top-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #tela-admin-dashboard .admin-marca-sub {
+    display: none;
+  }
+
+  #tela-admin-dashboard .admin-perfil-chip .admin-perfil-dados {
+    display: none;
+  }
+
+  #tela-admin-dashboard .texto-btn-app {
+    display: none;
+  }
+
+  #tela-admin-dashboard .btn-ir-app {
+    padding: 7px 10px;
+  }
+
+  #tela-admin-dashboard .admin-nav-menu {
+    width: 100%;
+    overflow-x: auto;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+
+  #tela-admin-dashboard .btn-nav-item {
+    font-size: 0.8rem;
+    padding: 7px 11px;
+  }
+
+  #tela-admin-dashboard .admin-corpo-conteudo {
+    padding: 14px 12px;
+  }
+
+  #tela-admin-dashboard .secao-solicitacoes-destaque {
+    padding: 18px 14px;
+  }
+
+  #tela-admin-dashboard .secao-cabecalho-linha {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  #tela-admin-dashboard .filtros-solicitacao-pills {
+    width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+
+  #tela-admin-dashboard .btn-pill-filtro {
+    flex: 1;
+    justify-content: center;
+  }
+
+  #tela-admin-dashboard .secao-topo-controles {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  #tela-admin-dashboard .controles-direita {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  #tela-admin-dashboard .input-busca-igreja {
+    width: 100%;
+  }
+
+  #tela-admin-dashboard .input-busca-igreja input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #tela-admin-dashboard .btn-adicionar-igreja {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #tela-admin-dashboard .grade-cards-lideres {
+    grid-template-columns: 1fr;
+  }
+
+  #tela-admin-dashboard .admin-simulador-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  #tela-admin-dashboard .botoes-simulador-rodape {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 6px;
+  }
+
+  #tela-admin-dashboard .btn-chip-simulador {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+/* CELULARES (< 600px) */
+@media (max-width: 600px) {
+  #tela-admin-dashboard .grid-indicadores-admin {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  #tela-admin-dashboard .card-metrica-admin {
+    padding: 14px 12px;
+  }
+
+  #tela-admin-dashboard .metrica-valor {
+    font-size: 1.5rem;
+  }
+
+  #tela-admin-dashboard .metrica-icone {
+    width: 30px;
+    height: 30px;
+  }
+
+  #tela-admin-dashboard .metrica-icone svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  #tela-admin-dashboard .card-sol-topo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  #tela-admin-dashboard .tag-status-sol {
+    align-self: flex-start;
+  }
+
+  #tela-admin-dashboard .sol-acoes-admin {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  #tela-admin-dashboard .btn-acao-admin {
+    width: 100%;
+  }
+
+  #tela-admin-dashboard .modal-admin-caixa {
+    padding: 18px 14px;
+  }
+
+  #tela-admin-dashboard .modal-admin-rodape {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #tela-admin-dashboard .btn-confirmar-aprovacao,
+  #tela-admin-dashboard .btn-confirmar-recusa,
+  #tela-admin-dashboard .btn-cancelar-admin {
+    width: 100%;
+  }
+
+  #tela-admin-dashboard .admin-corpo-conteudo {
+    padding: 12px 10px;
+  }
+
+  #tela-admin-dashboard .toast-feedback-admin {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+}
+
+/* CELULARES MUITO PEQUENOS (< 360px) */
+@media (max-width: 360px) {
+  #tela-admin-dashboard .grid-indicadores-admin {
+    grid-template-columns: 1fr;
+  }
+
+  #tela-admin-dashboard .marca-nome {
+    font-size: 1rem;
+  }
+}

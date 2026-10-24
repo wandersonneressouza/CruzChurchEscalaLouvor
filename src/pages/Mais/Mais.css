@@ -9,32 +9,6 @@
   overflow: hidden;
 }
 
-/* =========================================
-   BARRA DE STATUS MOBILE
-   ========================================= */
-#tela-mais .status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px 8px;
-  background-color: var(--bg-card);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-light);
-  z-index: 20;
-}
-
-#tela-mais .status-icons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#tela-mais .status-icons svg {
-  width: 16px;
-  height: 16px;
-}
 
 /* =========================================
    CONTEÚDO COM ROLAGEM
@@ -105,6 +79,39 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#tela-mais .card-perfil-usuario:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+#tela-mais .btn-editar-perfil-atalho {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+#tela-mais .btn-editar-perfil-atalho:hover {
+  background-color: #e2e8f0;
+  color: var(--primary);
+}
+
+#tela-mais .btn-editar-perfil-atalho svg {
+  width: 17px;
+  height: 17px;
 }
 
 #tela-mais .perfil-avatar-wrapper {
@@ -516,15 +523,71 @@
   margin-top: -6px;
 }
 
-/* Lista da Equipe no Modal */
-#tela-mais .equipe-lista-modal {
+#tela-mais .modal-sub-campus {
+  font-size: 11.5px;
+  color: var(--primary);
+  font-weight: 600;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Abas do Modal de Equipe */
+#tela-mais .modal-abas-equipe {
+  display: flex;
+  background-color: #f1f5f9;
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+#tela-mais .btn-aba-equipe {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#tela-mais .btn-aba-equipe.ativo {
+  background-color: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+#tela-mais .badge-aba-contador {
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+}
+
+#tela-mais .conteudo-aba-equipe {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 6px;
 }
 
-#tela-mais .equipe-item-card {
+/* Lista de Membros Ativos com Gerenciamento */
+#tela-mais .equipe-lista-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#tela-mais .equipe-item-card-gerenciamento {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -532,11 +595,12 @@
   padding: 12px 14px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
+  transition: all 0.2s ease;
 }
 
 #tela-mais .equipe-avatar {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: var(--primary-light);
   color: var(--primary);
@@ -552,12 +616,23 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 #tela-mais .equipe-nome {
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#tela-mais .equipe-funcao-linha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 #tela-mais .equipe-cargo {
@@ -565,13 +640,491 @@
   color: var(--text-secondary);
 }
 
-#tela-mais .badge-naipe {
+#tela-mais .equipe-email-sub {
   font-size: 11px;
+  color: var(--text-muted);
+}
+
+#tela-mais .badge-naipe {
+  font-size: 10px;
   font-weight: 700;
   background-color: #e2e8f0;
   color: var(--text-secondary);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-pill);
+}
+
+/* Ações do Líder no Membro */
+#tela-mais .equipe-acoes-lider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#tela-mais .btn-acao-membro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#tela-mais .btn-acao-membro.editar {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+#tela-mais .btn-acao-membro.editar:hover {
+  background-color: #dbeafe;
+}
+
+#tela-mais .btn-acao-membro.revogar {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+#tela-mais .btn-acao-membro.revogar:hover {
+  background-color: #fee2e2;
+}
+
+#tela-mais .btn-acao-membro svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Cards de Solicitações Pendentes */
+#tela-mais .solicitacoes-lista-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#tela-mais .card-solicitacao-voluntario {
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.05);
+}
+
+#tela-mais .sol-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#tela-mais .sol-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #ffedd5;
+  color: #ea580c;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#tela-mais .sol-info-pessoal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#tela-mais .sol-nome {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+#tela-mais .sol-email {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+#tela-mais .sol-telefone {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+#tela-mais .tag-aguardando-mini {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background-color: #fef3c7;
+  color: #d97706;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+}
+
+#tela-mais .sol-detalhe-funcao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+#tela-mais .rotulo-sol {
+  color: var(--text-muted);
+}
+
+#tela-mais .valor-sol {
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+#tela-mais .badge-naipe-sol {
+  font-size: 10px;
+  font-weight: 700;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+#tela-mais .sol-botoes-decisao {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+#tela-mais .btn-aprovar-sol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#tela-mais .btn-aprovar-sol:hover {
+  background: #059669;
+}
+
+#tela-mais .btn-aprovar-sol svg {
+  width: 15px;
+  height: 15px;
+}
+
+#tela-mais .btn-recusar-sol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#tela-mais .btn-recusar-sol:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+#tela-mais .btn-recusar-sol svg {
+  width: 14px;
+  height: 14px;
+}
+
+#tela-mais .aviso-somente-lider {
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+}
+
+#tela-mais .estado-vazio-solicitacoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 16px;
+  gap: 8px;
+}
+
+#tela-mais .estado-vazio-solicitacoes svg {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+}
+
+#tela-mais .estado-vazio-solicitacoes h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+#tela-mais .estado-vazio-solicitacoes p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Submodals e Formulários */
+#tela-mais .modal-backdrop.submodal {
+  z-index: 120;
+}
+
+#tela-mais .submodal-sheet {
+  background-color: #ffffff;
+}
+
+#tela-mais .form-ajuste-funcao,
+#tela-mais .form-meu-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+#tela-mais .form-ajuste-funcao label,
+#tela-mais .form-meu-perfil label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+#tela-mais .select-custom-funcao {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: #f8fafc;
+  outline: none;
+  box-sizing: border-box;
+}
+
+#tela-mais .select-custom-funcao:focus {
+  border-color: var(--primary);
+  background-color: #ffffff;
+}
+
+#tela-mais .botoes-form-funcao {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+#tela-mais .btn-salvar-funcao {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#tela-mais .btn-salvar-funcao:hover {
+  background-color: var(--primary-dark);
+}
+
+#tela-mais .btn-cancelar-modal {
+  padding: 12px 16px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: var(--text-secondary);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Alerta de Revogação de Acesso */
+#tela-mais .icone-alerta-revogar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+#tela-mais .icone-alerta-revogar svg {
+  width: 24px;
+  height: 24px;
+}
+
+#tela-mais .box-regra-seguranca {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.45;
+  text-align: left;
+}
+
+#tela-mais .box-regra-seguranca strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Card Resumo do Meu Perfil */
+#tela-mais .card-perfil-resumo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #f8fafc;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+}
+
+#tela-mais .resumo-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e5ec8 0%, #38bdf8 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+#tela-mais .resumo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#tela-mais .resumo-info strong {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+#tela-mais .resumo-info span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+#tela-mais .badge-cargo-mini {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--primary);
+  background-color: var(--primary-light);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  margin-top: 2px;
+}
+
+#tela-mais .ajuda-perfil {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+#tela-mais .feedback-sucesso-perfil {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #065f46;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#tela-mais .feedback-sucesso-perfil svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Simulador de Perfis */
+#tela-mais .simulador-grid-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+#tela-mais .btn-simulador-opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #f8fafc;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+#tela-mais .btn-simulador-opcao:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+#tela-mais .btn-simulador-opcao.ativo {
+  border-color: var(--primary);
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+#tela-mais .sim-icone {
+  font-size: 20px;
+}
+
+#tela-mais .sim-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#tela-mais .sim-texto strong {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+#tela-mais .sim-texto span {
+  font-size: 11.5px;
+  color: var(--text-secondary);
 }
 
 /* Card Pedido de Troca */

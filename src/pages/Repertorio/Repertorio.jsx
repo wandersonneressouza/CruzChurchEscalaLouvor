@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAppContext } from '../../context/AppContext'
 import './Repertorio.css'
 
 function Repertorio() {
+  const { musicas, adicionarMusica, toggleFavoritoMusica } = useAppContext()
   const [filtroAtivo, setFiltroAtivo] = useState('Todas')
   const [busca, setBusca] = useState('')
   const [mostrarBusca, setMostrarBusca] = useState(false)
@@ -15,105 +17,37 @@ function Repertorio() {
   const [novoBpm, setNovoBpm] = useState('72')
   const [novaTag, setNovaTag] = useState('Culto de Domingo')
 
-  // Lista inicial com os louvores do protótipo
-  const [musicas, setMusicas] = useState([
-    {
-      id: 1,
-      titulo: 'Aleluia',
-      artista: 'Gabriela Rocha',
-      tom: 'G',
-      bpm: '72',
-      tag: 'Culto de Domingo',
-      tipo: 'Culto',
-      capaTexto: 'ALELUIA'
-    },
-    {
-      id: 2,
-      titulo: 'A Ele a Glória',
-      artista: 'Ministério Zoe',
-      tom: 'D',
-      bpm: '70',
-      tag: 'Culto de Domingo',
-      tipo: 'Culto',
-      capaTexto: 'A ELE A GLÓRIA'
-    },
-    {
-      id: 3,
-      titulo: 'Bondade de Deus',
-      artista: 'Isaias Saad',
-      tom: 'A',
-      bpm: '74',
-      tag: 'Ensaio',
-      tipo: 'Culto',
-      capaTexto: 'BONDADE'
-    },
-    {
-      id: 4,
-      titulo: 'Deus Cuida de Mim',
-      artista: 'Pr. Lucas',
-      tom: 'C',
-      bpm: '68',
-      tag: 'Culto de Celebração',
-      tipo: 'Culto',
-      capaTexto: 'CUIDA DE MIM'
-    },
-    {
-      id: 5,
-      titulo: 'Faz Tua Vontade',
-      artista: 'Morada',
-      tom: 'E',
-      bpm: '76',
-      tag: 'Tema: Adoração',
-      tipo: 'Tema',
-      capaTexto: 'FAZ TUA VONTADE'
-    },
-    {
-      id: 6,
-      titulo: 'Ninguém Explica Deus',
-      artista: 'Preto no Branco',
-      tom: 'G',
-      bpm: '72',
-      tag: 'Repertório Geral',
-      tipo: 'Minhas listas',
-      capaTexto: 'PRETO NO BRANCO'
-    }
-  ])
-
   // Filtragem dinâmica
   const musicasFiltradas = musicas.filter((musica) => {
     const atendeFiltro =
       filtroAtivo === 'Todas' ||
       (filtroAtivo === 'Culto' && musica.tipo === 'Culto') ||
       (filtroAtivo === 'Tema' && musica.tipo === 'Tema') ||
-      (filtroAtivo === 'Minhas listas' && musica.tipo === 'Minhas listas')
+      (filtroAtivo === 'Minhas listas' && (musica.favorita || musica.tipo === 'Minhas listas'))
 
     const termo = busca.toLowerCase()
     const atendeBusca =
       musica.titulo.toLowerCase().includes(termo) ||
       musica.artista.toLowerCase().includes(termo) ||
       musica.tom.toLowerCase().includes(termo) ||
-      musica.tag.toLowerCase().includes(termo)
+      (musica.tag && musica.tag.toLowerCase().includes(termo))
 
     return atendeFiltro && atendeBusca
   })
 
-  // Adicionar música ao repertório local
+  // Adicionar música ao repertório compartilhado
   function handleAdicionarMusica(e) {
     e.preventDefault()
     if (!novoTitulo.trim() || !novoArtista.trim()) return
 
-    const novaMusica = {
-      id: Date.now(),
-      titulo: novoTitulo,
-      artista: novoArtista,
+    adicionarMusica({
+      titulo: novoTitulo.trim(),
+      artista: novoArtista.trim(),
       tom: novoTom,
       bpm: novoBpm,
-      tag: novaTag,
-      tipo: novaTag.includes('Tema') ? 'Tema' : 'Culto',
-      capaTexto: novoTitulo.substring(0, 10).toUpperCase()
-    }
+      tag: novaTag
+    })
 
-    setMusicas([novaMusica, ...musicas])
     setNovoTitulo('')
     setNovoArtista('')
     setModalAberto(false)
@@ -121,26 +55,6 @@ function Repertorio() {
 
   return (
     <div id="tela-repertorio">
-      {/* Barra de Status Mobile */}
-      <div className="status-bar">
-        <span className="status-time">9:41</span>
-        <div className="status-icons">
-          <svg className="icon-signal" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25A10.93 10.93 0 0 1 1 12C1 5.92 5.92 1 12 1s11 4.92 11 11c0 2.37-.75 4.57-2.03 6.36l-.63-.63A9.94 9.94 0 0 0 21 12c0-4.97-4.03-9-9-9z"/>
-            <path d="M12 7a5 5 0 0 0-5 5c0 1.25.46 2.39 1.22 3.28l.71-.71A3.98 3.98 0 0 1 8 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4c0 .93-.32 1.79-.86 2.47l.71.71A4.97 4.97 0 0 0 17 12a5 5 0 0 0-5-5z"/>
-            <circle cx="12" cy="12" r="1.5"/>
-          </svg>
-          <svg className="icon-wifi" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98A17.88 17.88 0 0 0 12 4z"/>
-          </svg>
-          <svg className="icon-battery" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="2" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-            <rect x="4" y="8" width="12" height="8" rx="1"/>
-            <path d="M21 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-      </div>
-
       {/* Conteúdo com Rolagem */}
       <div className="repertorio-scroll-content">
         {/* Topo / Header */}
