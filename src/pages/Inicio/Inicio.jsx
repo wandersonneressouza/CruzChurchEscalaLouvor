@@ -4,9 +4,39 @@ import { useAppContext } from '../../context/AppContext'
 import './Inicio.css'
 
 function Inicio() {
-  const { usuario, totalEscalasPendentes, totalSolicitacoesPendentes, devocional } = useAppContext()
-  const primeiroNome = usuario?.nome ? usuario.nome.split(' ')[0] : 'Anderson'
-  const ehLider = usuario?.tipoConta === 'lider' || usuario?.cargo?.toLowerCase().includes('líder')
+  const { usuario, totalEscalasPendentes, totalSolicitacoesPendentes, devocional, agendaEventos, escalas } = useAppContext()
+  const primeiroNome = usuario?.nome ? usuario.nome.split(' ')[0] : 'Ministro'
+  const ehLider = usuario?.tipoConta === 'lider' || usuario?.tipoConta === 'admin' || usuario?.cargo?.toLowerCase().includes('líder')
+
+  // Filtra eventos e cultos da congregação do usuário
+  const eventosIgreja = React.useMemo(() => {
+    if (!agendaEventos) return []
+    return agendaEventos.filter(e => !usuario?.igrejaId || e.igrejaId === usuario.igrejaId)
+  }, [agendaEventos, usuario?.igrejaId])
+
+  const proximoCulto = React.useMemo(() => {
+    const cultoEv = eventosIgreja.find(e => e.tipo === 'Culto')
+    if (cultoEv) return cultoEv
+
+    if (escalas && escalas.length > 0) {
+      const esc = escalas.find(e => !usuario?.igrejaId || e.igrejaId === usuario.igrejaId)
+      if (esc) {
+        return {
+          titulo: esc.evento,
+          tipo: 'Culto',
+          data: esc.data,
+          dataFormatada: esc.data,
+          hora: esc.hora,
+          local: esc.local
+        }
+      }
+    }
+    return eventosIgreja[0] || null
+  }, [eventosIgreja, escalas, usuario?.igrejaId])
+
+  const proximoEnsaio = React.useMemo(() => {
+    return eventosIgreja.find(e => e.tipo === 'Ensaio') || null
+  }, [eventosIgreja])
 
   return (
     <div id="tela-inicio">
@@ -79,8 +109,8 @@ function Inicio() {
               </svg>
             </div>
             <div className="culto-chamada">
-              <span className="culto-tag">PRÓXIMO CULTO</span>
-              <h3>Culto de Domingo</h3>
+              <span className="culto-tag">PRÓXIMO COMPROMISSO</span>
+              <h3>{proximoCulto ? (proximoCulto.titulo || 'Culto de Celebração') : 'Cultos & Celebrações'}</h3>
             </div>
             <div className="seta-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5">
@@ -95,14 +125,16 @@ function Inicio() {
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
-              26 de outubro de 2026 • 19:00
+              {proximoCulto
+                ? `${proximoCulto.dataFormatada || proximoCulto.data} • ${proximoCulto.hora || '19:00'}`
+                : 'Consulte a programação da congregação'}
             </p>
             <p className="culto-local">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              Igreja da Graça - São Carlos
+              {proximoCulto?.local || usuario?.campus || 'Templo Central'}
             </p>
           </div>
 
@@ -111,7 +143,7 @@ function Inicio() {
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <polyline points="9 11 12 14 22 4" />
             </svg>
-            <span>Ver minha escala</span>
+            <span>Ver agenda e escalas</span>
             <svg className="btn-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -130,12 +162,16 @@ function Inicio() {
             </div>
             <div className="mini-card-texto">
               <h4>Próximo ensaio</h4>
-              <p className="sub-texto">Quarta-feira • 19:30</p>
+              <p className="sub-texto">
+                {proximoEnsaio
+                  ? `${proximoEnsaio.dataFormatada || proximoEnsaio.data} • ${proximoEnsaio.hora || '19:30'}`
+                  : 'Sem ensaios agendados'}
+              </p>
               <p className="local-texto">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 21h18M3 7v14M21 7v14M6 7V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3" />
                 </svg>
-                Sala de Música
+                {proximoEnsaio?.local || usuario?.campus || 'Sala de Música'}
               </p>
             </div>
           </div>

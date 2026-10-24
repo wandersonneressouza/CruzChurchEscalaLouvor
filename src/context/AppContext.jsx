@@ -106,41 +106,92 @@ export function AppProvider({ children }) {
       }
 
       // 3. Agenda de Eventos (Cultos e Ensaios)
-      const { data: dataAgenda, error: errAgenda } = await supabase
-        .from('agenda_eventos')
-        .select('*')
-        .order('data')
+      try {
+        const { data: dataAgenda, error: errAgenda } = await supabase
+          .from('agenda_eventos')
+          .select('*')
+          .order('data', { ascending: true })
 
-      if (dataAgenda && !errAgenda) {
-        setAgendaEventos(dataAgenda)
+        if (dataAgenda && !errAgenda) {
+          setAgendaEventos(
+            dataAgenda.map(ev => ({
+              id: ev.id,
+              igrejaId: ev.igreja_id,
+              titulo: ev.titulo,
+              tipo: ev.tipo || 'Culto',
+              data: ev.data,
+              hora: ev.hora ? (ev.hora.length > 5 ? ev.hora.substring(0, 5) : ev.hora) : '19:00',
+              dataFormatada: ev.data_formatada || ev.data,
+              dataCurta: ev.data_curta || (ev.data ? `${ev.data.substring(8, 10)}/${ev.data.substring(5, 7)}` : ''),
+              local: ev.local,
+              descricao: ev.descricao || ''
+            }))
+          )
+        }
+      } catch (eAg) {
+        console.warn('Aviso ao consultar agenda_eventos:', eAg)
       }
 
       // 4. Escalas com Integrantes e Repertório
-      const { data: dataEscalas, error: errEscalas } = await supabase
-        .from('escalas')
-        .select(`
-          *,
-          escala_integrantes(*),
-          escala_repertorio(*, musicas(*))
-        `)
-        .order('data')
+      try {
+        let { data: dataEscalas, error: errEscalas } = await supabase
+          .from('escalas')
+          .select(`
+            *,
+            escala_integrantes(*, perfis(id, nome, email, funcao, naipe, avatar)),
+            escala_repertorio(*, musicas(*))
+          `)
+          .order('data', { ascending: true })
 
-      if (dataEscalas && !errEscalas) {
-        setEscalas(
-          dataEscalas.map(e => ({
-            id: e.id,
-            evento: e.evento_nome || e.titulo || 'Culto de Celebração',
-            tipo: e.tipo || 'Culto',
-            data: e.data_formatada || e.data,
-            dataCurta: e.data_curta || e.data,
-            hora: e.hora,
-            local: e.local,
-            observacoes: e.observacoes,
-            status: e.status_geral || 'pendente',
-            integrantes: e.escala_integrantes || [],
-            repertorio: e.escala_repertorio || []
-          }))
-        )
+        // Se falhar a junção de perfis, tenta consulta direta
+        if (errEscalas) {
+          const resFallback = await supabase
+            .from('escalas')
+            .select(`
+              *,
+              escala_integrantes(*),
+              escala_repertorio(*, musicas(*))
+            `)
+            .order('data', { ascending: true })
+          dataEscalas = resFallback.data
+          errEscalas = resFallback.error
+        }
+
+        if (dataEscalas && !errEscalas) {
+          setEscalas(
+            dataEscalas.map(e => ({
+              id: e.id,
+              igrejaId: e.igreja_id,
+              evento: e.evento_nome || e.titulo || 'Culto de Celebração',
+              tipo: e.tipo || 'Culto',
+              data: e.data_formatada || e.data,
+              dataRaw: e.data,
+              dataCurta: e.data_curta || (e.data ? `${e.data.substring(8, 10)}/${e.data.substring(5, 7)}` : ''),
+              hora: e.hora ? (e.hora.length > 5 ? e.hora.substring(0, 5) : e.hora) : '19:00',
+              local: e.local,
+              observacoes: e.observacoes || '',
+              status: e.status_geral || 'publicada',
+              integrantes: (e.escala_integrantes || []).map(i => ({
+                id: i.id,
+                userId: i.user_id,
+                nome: i.perfis?.nome || 'Integrante',
+                funcao: i.funcao,
+                naipe: i.naipe || i.perfis?.naipe || 'Geral',
+                status: i.status || 'pendente',
+                avatar: i.perfis?.avatar || (i.perfis?.nome ? i.perfis.nome.substring(0, 2).toUpperCase() : 'MB'),
+                email: i.perfis?.email
+              })),
+              repertorio: (e.escala_repertorio || []).map(r => ({
+                id: r.id,
+                ordem: r.ordem,
+                tom: r.tom_escolhido || r.musicas?.tom,
+                musica: r.musicas
+              }))
+            }))
+          )
+        }
+      } catch (eEsc) {
+        console.warn('Aviso ao consultar escalas:', eEsc)
       }
 
       // 5. Devocional Atual da Igreja
@@ -1010,7 +1061,17 @@ export function AppProvider({ children }) {
   // Confirmação de presença na escala
   async function confirmarPresenca(escalaId) {
     setEscalas(prev =>
-      prev.map(item => (item.id === escalaId ? { ...item, status: 'confirmado' } : item))
+      prev.map(item => {
+        if (item.id === escalaId) {
+          const novosIntegrantes = (item.integrantes || []).map(i =>
+            (i.userId === usuario?.id || i.user_id === usuario?.id || i.email === usuario?.email)
+              ? { ...i, status: 'confirmado' }
+              : i
+          )
+          return { ...item, status: 'confirmado', integrantes: novosIntegrantes }
+        }
+        return item
+      })
     )
 
     if (supabaseConfigurado && supabase && usuario?.id) {
@@ -1024,7 +1085,17 @@ export function AppProvider({ children }) {
   // Recusar presença na escala
   async function recusarPresenca(escalaId) {
     setEscalas(prev =>
-      prev.map(item => (item.id === escalaId ? { ...item, status: 'recusado' } : item))
+      prev.map(item => {
+        if (item.id === escalaId) {
+          const novosIntegrantes = (item.integrantes || []).map(i =>
+            (i.userId === usuario?.id || i.user_id === usuario?.id || i.email === usuario?.email)
+              ? { ...i, status: 'recusado' }
+              : i
+          )
+          return { ...item, status: 'recusado', integrantes: novosIntegrantes }
+        }
+        return item
+      })
     )
 
     if (supabaseConfigurado && supabase && usuario?.id) {
@@ -1038,7 +1109,17 @@ export function AppProvider({ children }) {
   // Solicitar substituição na escala
   async function solicitarSubstituicao(escalaId) {
     setEscalas(prev =>
-      prev.map(item => (item.id === escalaId ? { ...item, status: 'substituicao' } : item))
+      prev.map(item => {
+        if (item.id === escalaId) {
+          const novosIntegrantes = (item.integrantes || []).map(i =>
+            (i.userId === usuario?.id || i.user_id === usuario?.id || i.email === usuario?.email)
+              ? { ...i, status: 'substituicao' }
+              : i
+          )
+          return { ...item, status: 'substituicao', integrantes: novosIntegrantes }
+        }
+        return item
+      })
     )
 
     if (supabaseConfigurado && supabase && usuario?.id) {
@@ -1046,6 +1127,42 @@ export function AppProvider({ children }) {
         .from('escala_integrantes')
         .update({ status: 'substituicao' })
         .match({ escala_id: escalaId, user_id: usuario.id })
+    }
+  }
+
+  // Criar novo evento na agenda (Cultos, Ensaios)
+  async function criarEventoAgenda({ titulo, tipo, data, hora, local, descricao }) {
+    if (supabaseConfigurado && supabase) {
+      const dataCurta = data ? `${data.substring(8, 10)}/${data.substring(5, 7)}` : ''
+
+      const { data: novoEv, error } = await supabase
+        .from('agenda_eventos')
+        .insert({
+          igreja_id: usuario?.igrejaId || 1,
+          titulo,
+          tipo: tipo || 'Culto',
+          data,
+          hora: hora ? (hora.length === 5 ? `${hora}:00` : hora) : '19:00:00',
+          data_formatada: data,
+          data_curta: dataCurta,
+          local: local || usuario?.campus || 'Templo Principal',
+          descricao: descricao || ''
+        })
+        .select()
+        .single()
+
+      if (!error && novoEv) {
+        await carregarDadosDoBanco()
+        return novoEv
+      }
+    }
+  }
+
+  // Excluir evento da agenda
+  async function excluirEventoAgenda(id) {
+    setAgendaEventos(prev => prev.filter(e => e.id !== id))
+    if (supabaseConfigurado && supabase) {
+      await supabase.from('agenda_eventos').delete().eq('id', id)
     }
   }
 
@@ -1144,6 +1261,8 @@ export function AppProvider({ children }) {
         editarIgreja,
         alternarStatusIgreja,
         revogarLiderancaIgreja,
+        criarEventoAgenda,
+        excluirEventoAgenda,
         aprovarVoluntario,
         recusarVoluntario,
         alterarCategoriaIntegrante,
