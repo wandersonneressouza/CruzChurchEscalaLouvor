@@ -189,10 +189,10 @@ function Inicio() {
               </svg>
               <h3>Devocional da semana</h3>
             </div>
-            <button className="link-ver-todos">Ver mais</button>
+            <Link to="/devocional" className="link-ver-todos">Ver mais</Link>
           </div>
 
-          <div className="card-devocional">
+          <Link to="/devocional" className="card-devocional">
             <div className="devocional-capa">
               <div className="capa-ilustracao">
                 <div className="sol-devocional"></div>
@@ -209,7 +209,7 @@ function Inicio() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
-          </div>
+          </Link>
         </section>
       </div>
 

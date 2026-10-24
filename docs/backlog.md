@@ -72,8 +72,50 @@
 
 ---
 
-## 3. Próximas Telas e Features Planejadas (Etapa 1 - Front-end)
+### [FEAT-004] Tela Devocional e Tela Mais (Módulos Ministeriais)
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/pages/Devocional/Devocional.jsx` (Tela monobloco com leitura do dia, áudio player simulado, oração do ministro e plano semanal de 7 dias)
+  - `src/pages/Devocional/Devocional.css` (CSS puro 100% escopado sob `#tela-devocional`)
+  - `src/pages/Mais/Mais.jsx` (Tela monobloco com perfil de ministro, toggle de disponibilidade, equipe, trocas com solicitação interativa, equipamentos e manuais)
+  - `src/pages/Mais/Mais.css` (CSS puro 100% escopado sob `#tela-mais`)
+  - `src/App.jsx` (Adição das rotas `/devocional` e `/mais`)
+  - `src/pages/Inicio/Inicio.jsx` (Links diretos para `/devocional` no card de Devocional da semana)
+- **Identificadores de Escopo CSS:** `#tela-devocional`, `#tela-mais`
+- **Funcionalidades da Tela Devocional:**
+  - Abas: `[ Leitura do Dia ]` e `[ Plano Semanal ]`.
+  - Hero Card com gradiente sofisticado, dados pastorais, tempo estimado de leitura e mini player de áudio interativo (play/pause com barra de progresso animada).
+  - Card de versículo chave estilizado (`Atos 16:25-26`) com aspas e tipografia elegante.
+  - Reflexão ministerial em 3 partes práticas para o altar.
+  - Card de oração guiada para consagração individual do voluntário/ministro.
+  - Ação de marcar como lido com estado persistido e badge comemorativo.
+  - Barra de progresso semanal com cálculo de leitura, streak de dias seguidos e cronograma dos 7 dias da semana.
+  - Ação de favoritar e copiar texto para compartilhamento via Toast alert.
+- **Funcionalidades da Tela Mais:**
+  - Card de perfil do usuário (Anderson Neres, ministro e tecladista, badge de líder, status online).
+  - Card de disponibilidade rápida com switch iOS toggle para marcar presença no mês.
+  - Módulos ministeriais com ícones temáticos:
+    - *Equipe & Integrantes:* Modal com 9 voluntários detalhados por naipes (Vocal, Harmonia, Ritmo, Áudio & Técnica, Mídia).
+    - *Trocas de Escala:* Modal interativo com pedido pendente de substituição e botões de ação ("Aceitar Troca" e "Não posso").
+    - *Área Técnica & Palco:* Modal com checklist de 6 equipamentos vitais (Mesa X32, In-Ears, Microfones, DI boxes, etc.) com badges de status ("OK" e "Verificar").
+    - *Manual & Regimento:* Modal com diretrizes de pontualidade, ensaio geral e consagração.
+    - *Configurações:* Toggles de lembretes de escala e tema noturno, além de confirmação de logout.
+- **Validação de Build:** `npm run build` executado com sucesso (zero erros).
 
-1. **[FEAT-004] Tela Devocional e Mais**
-   - **ID CSS Alvo:** `#tela-devocional`, `#tela-mais`
-   - **Elementos:** Leitura devocional detalhada, plano de leitura e menu expandido com módulos ministeriais (Equipe, Área Técnica, Comunicação, Configurações).
+---
+
+## 3. Próximas Etapas e Roadmap Planejado
+
+### Conclusão da Etapa 1: Front-end e Design
+- **100% do fluxo de navegação implementado:**
+  1. `/` — Início (Dashboard de cultos, ensaios, confirmações e avisos)
+  2. `/agenda` — Agenda e Escalas (Calendário mensal e detalhamento por ministérios)
+  3. `/musicas` — Repertório Musical (Busca, filtros por culto/tema e cadastro com modal FAB)
+  4. `/devocional` — Devocional Diário e Plano Semanal (Player áudio, versículo, oração e progresso)
+  5. `/mais` — Menu Ministerial e Configurações (Perfil, disponibilidade, equipe, trocas, equipamentos e manual)
+
+### Etapa 2: Integração e Persistência (Futuro / Próximo Passo)
+- **Planejamento de Estado Global / Context API:** Centralização de usuário logado, status das escalas confirmadas e músicas do repertório.
+- **Camada de Serviços / API Mock ou Supabase/Firebase:** Estruturação para persistência real de dados.
+- **PWA (Progressive Web App):** Adição de service worker e manifesto para instalação no celular como aplicativo nativo.
