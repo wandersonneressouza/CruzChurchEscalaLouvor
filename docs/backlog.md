@@ -54,14 +54,26 @@
   - Barra de navegação inferior ativa no item Agenda.
 - **Validação de Build:** `npm run build` executado com sucesso (zero erros).
 
+### [FEAT-003] Tela de Repertório Musical
+- **Status:** Concluída
+- **Data:** 2026-10-23
+- **Arquivos Criados/Alterados:**
+  - `src/pages/Repertorio/Repertorio.jsx` (Tela monobloco com lista de músicas, busca, filtros e modal)
+  - `src/pages/Repertorio/Repertorio.css` (CSS puro 100% escopado sob `#tela-repertorio`)
+  - `src/App.jsx` (Adição da rota `/musicas`)
+- **Identificador de Escopo CSS:** `#tela-repertorio`
+- **Funcionalidades da Tela:**
+  - Barra de cabeçalho com retorno e botão de alternância de busca rápida (campo expansível).
+  - Chips de filtragem horizontal: `[ Todas ]`, `[ Culto ]`, `[ Tema ]`, `[ Minhas listas ]`.
+  - Cards de louvores com miniaturas de capa estilizadas, título, artista, tom, BPM e tags temáticas de culto.
+  - Botão de Ação Flutuante (FAB `+`) que abre um modal monobloco para cadastrar novas músicas com título, artista, tom, BPM e classificação.
+  - Barra de navegação inferior ativa no item Músicas.
+- **Validação de Build:** `npm run build` executado com sucesso (zero erros).
+
 ---
 
 ## 3. Próximas Telas e Features Planejadas (Etapa 1 - Front-end)
 
-1. **[FEAT-003] Tela de Repertório**
-   - **ID CSS Alvo:** `#tela-repertorio`
-   - **Elementos:** Filtros de categoria ([Todas], [Culto], [Tema], [Minhas listas]), campo de busca, lista de louvores com tags, tom, BPM e Floating Action Button (FAB) para cadastrar música.
-
-2. **[FEAT-004] Tela Devocional e Mais**
+1. **[FEAT-004] Tela Devocional e Mais**
    - **ID CSS Alvo:** `#tela-devocional`, `#tela-mais`
-   - **Elementos:** Leitura devocional detalhada e menu expandido de módulos ministeriais.
+   - **Elementos:** Leitura devocional detalhada, plano de leitura e menu expandido com módulos ministeriais (Equipe, Área Técnica, Comunicação, Configurações).
