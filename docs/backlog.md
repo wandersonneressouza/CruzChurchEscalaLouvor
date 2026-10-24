@@ -189,8 +189,81 @@
    - **Autenticação Real:** Conexão direta com Supabase Auth (`signUp`, `signInWithPassword`, `signOut`, `onAuthStateChange`) em [Login.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Login/Login.jsx) e [Cadastro.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Cadastro/Cadastro.jsx).
    - **Proteção Estrita de Rota ADMIN (`RotaAdmin`):** [App.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/App.jsx) bloqueia acesso direto à rota `/admin`. Apenas usuários autenticados com `tipo_conta === 'admin'` ou `cargo === 'ADMIN'` podem acessar; não autenticados são enviados para o login e outros papéis para `/`.
    - **Atalho Discreto no Login:** [Login.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Login/Login.jsx) inclui botão sutil "Entrar como administrador" que preenche o e-mail do admin e foca o campo de senha.
+   - **Isolamento Exclusivo do Administrador (Acesso Único a /admin):** O usuário com perfil Administrador foi completamente isolado da interface de usuário comum. Ao logar ou acessar qualquer rota do app comum (`/`, `/agenda`, `/musicas`, `/devocional`, `/mais`), o Administrador é automaticamente redirecionado com exclusividade para `/admin`. O botão de transição para o app comum foi removido de [AdminDashboard.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Admin/AdminDashboard.jsx), garantindo foco total no gerenciamento geral da plataforma.
+   - **Correção de Duplicação e Reset de Status de Líderes:**
+     - Eliminada a chamada duplicativa que reinseria líderes em `solicitacoes_lideres` durante `verificarStatusAcesso()` e `sincronizarPerfilSeAusente()`.
+     - Implementada verificação prévia estrita por `id` e `email` antes de qualquer sincronização, preservando o status `aprovado`.
+     - Adicionada deduplicação reativa no carregamento de solicitações no [AppContext.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/context/AppContext.jsx) para que registros duplicados anteriores sejam colapsados e priorizem o status `aprovado`.
+     - Atualização em lote na aprovação de solicitações para marcar todas as ocorrências de um mesmo líder como aprovadas no Supabase.
    - **Validação de Build:** `npm run build` executado com código 0 (zero erros).
 
 
 
+
+
+14. **[RESOLVIDO] Eliminação de Piscar / Flicker e Loop de Re-renderização na Tela de Login**
+    - **Causa Raiz Identificada:**
+      - Em AppContext.jsx, o callback carregarDadosDoBanco dependia de [usuario].
+      - O useEffect de inicialização de sessão dependia de [carregarDadosDoBanco].
+      - Quando a sessão era validada (ou no mount com React.StrictMode), setUsuario alterava o estado usuario, recriando a referência de carregarDadosDoBanco, o que disparava novamente o useEffect, criando um loop contínuo de montagem e desmontagem.
+      - Além disso, em App.jsx, a rota pública retornava null enquanto carregandoDados oscilava, alternando a tela entre branca e o formulário de login (efeito estroboscópico/piscar).
+      - Na página AguardandoAprovacao.jsx, a função verificarStatusAcesso disparava setUsuario a cada intervalo mesmo quando o status não havia sofrido nenhuma alteração.
+    - **Solução Implementada:**
+      - carregarDadosDoBanco teve sua lista de dependências estabilizada com [].
+      - O useEffect de inicialização de sessão foi isolado com token de cancelamento (ativo), garantindo execução limpa e sem conflitos em StrictMode ou trocas de sessão.
+      - verificarStatusAcesso foi envolvido em useCallback e passou a verificar houveMudanca antes de disparar qualquer atualização de estado no React.
+      - Criado o componente TelaCarregando em App.jsx para substituir os retornos de null, garantindo transições suaves sem flash branco e sem avaliações prematuras de rota antes da hidratação do usuário.
+    - **Validação:**
+      - npm run build executado com sucesso (código 0).
+      - Testado no navegador: verificado ausência total de loops, requests contínuos ou piscar visual.
+
+15. **[RESOLVIDO] Criação, Edição e Exclusão de Eventos na Tela de Agenda e Sincronização com o Supabase**
+    - **Causa Raiz Identificada:**
+      - `criarEventoAgenda` possuía um fallback hardcoded `igreja_id: 1`. Como a igreja cadastrada no banco possui ID 9 (e o ID 1 não existia), a restrição de chave estrangeira `agenda_eventos_igreja_id_fkey` falhava silenciosamente e o erro não era propagado para o modal.
+      - Não existiam funções nem botões na interface para edição e exclusão de eventos já registrados na agenda.
+      - O gatilho de banco `on_auth_user_created` disparava em `UPDATE`, o que podia resetar o perfil de líderes aprovados.
+    - **Solução Implementada:**
+      - `AppContext.jsx`:
+        - `criarEventoAgenda`: Implementada resolução dinâmica e numérica da congregação ativa (`Number(igrejaId)`), formatação de data/hora, lançamento de erros e suporte opcional à criação de escala em lote.
+        - `atualizarEventoAgenda`: Permite atualizar título, tipo, data, horário, local e descrição no Supabase, sincronizando também os dados da escala vinculada (`escalas.evento_id = eventoId`).
+        - `excluirEventoAgenda`: Remove o evento de `agenda_eventos` e limpa/remove a escala vinculada, recarregando os dados do banco imediatamente.
+      - `Agenda.jsx` & `Agenda.css`:
+        - Cada card de compromisso conta com botões de ação exclusivos para líderes e administradores: **Editar (ícone de lápis)** e **Excluir (ícone de lixeira)**.
+        - Modal de Agenda unificado e dinâmico: atua tanto no modo criação ("Novo Evento") quanto edição ("Editar Evento"), com botão de exclusão direto no rodapé e confirmação de segurança.
+        - Feedback visual com mensagens amigáveis de sucesso e erro.
+      - `schema.sql` & `fix_usuario_recadastro.sql`:
+        - Gatilho corrigido para disparar apenas em `AFTER INSERT ON auth.users`, preservando o status `aprovado` e a congregação do líder.
+    - **Validação:**
+      - Build de produção `npm run build` aprovado com código 0.
+      - Integração completa de CRUD validada.
+
+16. **[RESOLVIDO] Visibilidade e Aprovação de Solicitações de Novos Membros/Voluntários para o Líder**
+    - **Causa Raiz Identificada:**
+      - O formulário de cadastro de voluntário usava fallback para a congregação ID 1 quando as congregações demoravam a carregar, enquanto a igreja real do líder possuía ID dinâmico.
+      - O filtro de congregação em `AppContext.jsx` comparava tipos mistos (string vs number).
+      - As tabelas `solicitacoes_voluntarios` e `perfis` precisavam de sincronização na leitura para voluntários com status pendente.
+    - **Solução Implementada:**
+      - `Cadastro.jsx`: Sincroniza `igrejaSelecionada` com a lista carregada de congregações.
+      - `AppContext.jsx`: Filtra com normalização `Number()`, une solicitações de `solicitacoes_voluntarios` e `perfis` pendentes, e corrige `targetUserId` na aprovação/recusa.
+      - `Mais.jsx`: Adicionado suporte a `?aba=solicitacoes` e normalização numérica do `igrejaId`.
+
+17. **[RESOLVIDO] Ativação Completa do Fluxo de Recuperação e Redefinição de Senha**
+    - **Causa Raiz Identificada:**
+      - O método `redefinirSenhaSupabase` redirecionava para `/login`, onde não havia formulário para criação de nova senha e as regras de rota causavam desvios.
+      - Não existia a função de atualização de credenciais (`supabase.auth.updateUser`) nem uma tela dedicada para inserção da nova senha.
+    - **Solução Implementada:**
+      - `src/services/supabase.js`:
+        - `redefinirSenhaSupabase`: Configurado com `redirectTo: ${window.location.origin}/redefinir-senha`.
+        - `atualizarSenhaSupabase(novaSenha)`: Criada função chamando `supabase.auth.updateUser({ password: novaSenha })`.
+      - `src/pages/RedefinirSenha/RedefinirSenha.jsx` & `RedefinirSenha.css`:
+        - Criada tela dedicada para redefinição de senha com validações de tamanho mínimo (6 caracteres), confirmação de senha, ícones SVG de alternância de visibilidade, detecção de token e feedback animado de sucesso.
+      - `src/App.jsx`:
+        - Rota `/redefinir-senha` registrada de forma independente (sem guards restritivos).
+      - `src/context/AppContext.jsx`:
+        - Tratamento explícito para o evento `PASSWORD_RECOVERY` no `onAuthStateChange`, evitando navegação prematura para `/` ou `/admin`.
+      - `src/pages/Login/Login.jsx`:
+        - Modal "Esqueceu a senha?" enriquecido com indicador de carregamento ("Enviando link..."), feedback de erro inline e confirmação visual de envio.
+    - **Validação:**
+      - `npm run build` aprovado sem erros.
+      - Fluxo visual e estados testados e validados no navegador.
 

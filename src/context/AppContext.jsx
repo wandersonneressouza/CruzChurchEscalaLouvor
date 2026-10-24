@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { obterNaipePorFuncao } from '../constants/categoriasMusicais'
 import {
   supabase,
@@ -26,6 +26,104 @@ function calcularTempoRelativo(dataStr) {
   return new Date(dataStr).toLocaleDateString('pt-BR')
 }
 
+// Helper para compor o objeto de usuário completo a partir do perfil e sessão
+async function montarObjetoUsuario(perfil, sessionUser) {
+  const meta = sessionUser?.user_metadata || {}
+  let nomeIgrejaLider = meta.nomeIgreja || meta.nome_igreja || perfil.nome_igreja || ''
+  let nomeCampus = 'Cruz Church'
+  let igrejaIdFinal = perfil.igreja_id || null
+
+  const ehAdminPerfil =
+    perfil.tipo_conta === 'admin' ||
+    perfil.cargo === 'ADMIN' ||
+    perfil.email === 'djandersonneres@hotmail.com'
+
+  let statusAcessoFinal = ehAdminPerfil ? 'aprovado' : (perfil.status_acesso || 'pendente')
+
+  // Se for líder, verifica se já foi aprovado no painel Admin e reconcilia banco e permissões
+  if (!ehAdminPerfil && perfil.tipo_conta === 'lider' && supabase) {
+    try {
+      // 1. Checa se há solicitação de liderança aprovada
+      const { data: solLider } = await supabase
+        .from('solicitacoes_lideres')
+        .select('*')
+        .or(`user_id.eq.${sessionUser?.id || perfil.id},email.eq.${perfil.email}`)
+        .eq('status', 'aprovado')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (solLider) {
+        statusAcessoFinal = 'aprovado'
+        if (solLider.nome_igreja) {
+          nomeIgrejaLider = solLider.nome_igreja
+        }
+      }
+
+      // 2. Se igreja_id ainda for nulo, tenta localizar congregação onde este líder está vinculado
+      if (!igrejaIdFinal) {
+        const { data: igEncontrada } = await supabase
+          .from('igrejas')
+          .select('id, nome')
+          .or(`lider.ilike.%${perfil.nome}%,nome.eq.${nomeIgrejaLider || 'agora vai'}`)
+          .limit(1)
+          .maybeSingle()
+
+        if (igEncontrada?.id) {
+          igrejaIdFinal = igEncontrada.id
+          nomeCampus = igEncontrada.nome
+        }
+      }
+
+      // 3. Se foi aprovado ou se achou igreja, garante que o perfil no banco esteja atualizado para que as RLS funcionem
+      if (statusAcessoFinal === 'aprovado' && (perfil.status_acesso !== 'aprovado' || (igrejaIdFinal && perfil.igreja_id !== igrejaIdFinal))) {
+        await supabase
+          .from('perfis')
+          .update({
+            status_acesso: 'aprovado',
+            cargo: 'Líder',
+            tipo_conta: 'lider',
+            igreja_id: igrejaIdFinal || perfil.igreja_id
+          })
+          .eq('id', perfil.id)
+      }
+    } catch (eLiderSync) {
+      console.warn('Aviso ao sincronizar liderança:', eLiderSync)
+    }
+  }
+
+  if (igrejaIdFinal && supabase) {
+    const { data: igData } = await supabase
+      .from('igrejas')
+      .select('nome')
+      .eq('id', igrejaIdFinal)
+      .maybeSingle()
+    if (igData?.nome) {
+      nomeCampus = igData.nome
+    }
+  } else if (nomeIgrejaLider) {
+    nomeCampus = nomeIgrejaLider
+  }
+
+  return {
+    id: perfil.id,
+    nome: perfil.nome,
+    email: perfil.email,
+    telefone: perfil.telefone || '',
+    funcao: ehAdminPerfil ? 'Administrador Geral' : (perfil.funcao || 'Voluntário'),
+    naipe: perfil.naipe || 'Vocal',
+    campus: nomeCampus,
+    nomeIgreja: nomeIgrejaLider || nomeCampus,
+    igrejaId: igrejaIdFinal,
+    cargo: ehAdminPerfil ? 'ADMIN' : (perfil.cargo || (perfil.tipo_conta === 'lider' ? 'Líder' : 'Voluntário')),
+    tipoConta: ehAdminPerfil ? 'admin' : (perfil.tipo_conta || 'voluntario'),
+    statusAcesso: statusAcessoFinal,
+    disponivel: perfil.disponivel !== false,
+    notificacoes: perfil.notificacoes !== false,
+    temaEscuro: Boolean(perfil.tema_escuro)
+  }
+}
+
 export function AppProvider({ children }) {
   // 0. Autenticação e Sessão
   const [estaAutenticado, setEstaAutenticado] = useState(false)
@@ -33,6 +131,10 @@ export function AppProvider({ children }) {
 
   // 1. Dados do Usuário Ativo
   const [usuario, setUsuario] = useState(null)
+  const usuarioRef = useRef(usuario)
+  useEffect(() => {
+    usuarioRef.current = usuario
+  }, [usuario])
 
   // 2. Entidades Reais do Banco de Dados
   const [igrejas, setIgrejas] = useState([])
@@ -75,7 +177,7 @@ export function AppProvider({ children }) {
   // ============================================================================
   // FUNÇÃO DE CARREGAMENTO CENTRALIZADO DO SUPABASE
   // ============================================================================
-  const carregarDadosDoBanco = useCallback(async (userAtual = usuario) => {
+  const carregarDadosDoBanco = useCallback(async () => {
     if (!supabaseConfigurado || !supabase) {
       setCarregandoDados(false)
       return
@@ -257,22 +359,79 @@ export function AppProvider({ children }) {
         .select('*')
         .order('created_at', { ascending: false })
 
+      // Deduplica por user_id / email e combina com perfis pendentes para resiliência total
+      const mapaVol = new Map()
+
       if (dataSolVol && !errSolVol) {
-        setSolicitacoesVoluntarios(
-          dataSolVol.map(s => ({
-            id: s.id,
-            userId: s.user_id,
-            nome: s.nome,
-            email: s.email,
-            telefone: s.telefone || '',
-            igrejaId: s.igreja_id,
-            funcao: s.funcao,
-            naipe: s.naipe,
-            status: s.status,
-            dataSolicitacao: new Date(s.created_at).toLocaleDateString('pt-BR')
-          }))
-        )
+        for (const s of dataSolVol) {
+          const chave = (s.user_id || s.email || '').toLowerCase()
+          if (!chave) continue
+          const existente = mapaVol.get(chave)
+          if (!existente) {
+            mapaVol.set(chave, {
+              id: s.id,
+              userId: s.user_id,
+              user_id: s.user_id,
+              nome: s.nome,
+              email: s.email,
+              telefone: s.telefone || '',
+              igrejaId: Number(s.igreja_id || (dataIgrejas && dataIgrejas.length > 0 ? dataIgrejas[0].id : null)),
+              funcao: s.funcao || 'Voluntário',
+              naipe: s.naipe || 'Vocal',
+              status: s.status,
+              dataSolicitacao: new Date(s.created_at).toLocaleDateString('pt-BR')
+            })
+          } else if (existente.status !== 'aprovado' && s.status === 'aprovado') {
+            mapaVol.set(chave, {
+              ...existente,
+              status: 'aprovado'
+            })
+          }
+        }
       }
+
+      // Adiciona também da tabela perfis qualquer voluntário pendente que ainda não esteja na fila
+      if (dataPerfis && dataPerfis.length > 0) {
+        const idIgrejaPadrao = dataIgrejas && dataIgrejas.length > 0 ? dataIgrejas[0].id : null
+        for (const p of dataPerfis) {
+          if (p.tipo_conta === 'voluntario' && (p.status_acesso === 'pendente' || !p.status_acesso)) {
+            const chave = (p.id || p.email || '').toLowerCase()
+            if (!chave) continue
+            if (!mapaVol.has(chave)) {
+              const targetIg = Number(p.igreja_id) || idIgrejaPadrao
+              mapaVol.set(chave, {
+                id: p.id,
+                userId: p.id,
+                user_id: p.id,
+                nome: p.nome,
+                email: p.email,
+                telefone: p.telefone || '',
+                igrejaId: targetIg,
+                funcao: p.funcao || 'Voluntário',
+                naipe: p.naipe || 'Vocal',
+                status: 'pendente',
+                dataSolicitacao: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : 'Recente'
+              })
+
+              // Sincroniza inserindo em solicitacoes_voluntarios se estiver ausente
+              if (targetIg && supabase) {
+                supabase.from('solicitacoes_voluntarios').insert({
+                  user_id: p.id,
+                  nome: p.nome,
+                  email: p.email,
+                  telefone: p.telefone || '',
+                  igreja_id: targetIg,
+                  funcao: p.funcao || 'Voluntário',
+                  naipe: p.naipe || 'Vocal',
+                  status: 'pendente'
+                }).then(() => {})
+              }
+            }
+          }
+        }
+      }
+
+      setSolicitacoesVoluntarios(Array.from(mapaVol.values()))
 
       // 8. Solicitações de Novos Líderes (Visão do Admin Geral)
       const { data: dataSolLid, error: errSolLid } = await supabase
@@ -281,8 +440,21 @@ export function AppProvider({ children }) {
         .order('created_at', { ascending: false })
 
       if (dataSolLid && !errSolLid) {
+        // Deduplica por user_id / email para evitar registros duplicados no painel de controle
+        const mapaLid = new Map()
+        for (const l of dataSolLid) {
+          const chave = (l.user_id || l.email || '').toLowerCase()
+          if (!chave) continue
+          const existente = mapaLid.get(chave)
+          if (!existente) {
+            mapaLid.set(chave, l)
+          } else if (existente.status !== 'aprovado' && l.status === 'aprovado') {
+            mapaLid.set(chave, l)
+          }
+        }
+
         setSolicitacoesLideres(
-          dataSolLid.map(l => ({
+          Array.from(mapaLid.values()).map(l => ({
             id: l.id,
             userId: l.user_id,
             user_id: l.user_id,
@@ -336,89 +508,65 @@ export function AppProvider({ children }) {
     } finally {
       setCarregandoDados(false)
     }
-  }, [usuario])
+  }, [])
 
   // ============================================================================
   // INICIALIZAÇÃO DA SESSÃO AO ABRIR O APP
   // ============================================================================
   useEffect(() => {
-    async function inicializarSessao() {
-      if (!supabaseConfigurado || !supabase) {
-        setCarregandoDados(false)
-        return
-      }
+    let ativo = true
 
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-
-        if (session?.user) {
-          const perfil = await obterPerfilUsuario(session.user.id)
-          if (perfil) {
-            const meta = session.user.user_metadata || {}
-            let nomeIgrejaLider = meta.nomeIgreja || meta.nome_igreja || perfil.nome_igreja || ''
-            let nomeCampus = 'Cruz Church'
-
-            if (perfil.igreja_id) {
-              const { data: igData } = await supabase
-                .from('igrejas')
-                .select('nome')
-                .eq('id', perfil.igreja_id)
-                .maybeSingle()
-              if (igData?.nome) {
-                nomeCampus = igData.nome
-              }
-            } else if (nomeIgrejaLider) {
-              nomeCampus = nomeIgrejaLider
-            } else {
-              const { data: solLider } = await supabase
-                .from('solicitacoes_lideres')
-                .select('nome_igreja')
-                .eq('user_id', session.user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle()
-              if (solLider?.nome_igreja) {
-                nomeIgrejaLider = solLider.nome_igreja
-                nomeCampus = solLider.nome_igreja
-              }
-            }
-
-            const userObj = {
-              id: perfil.id,
-              nome: perfil.nome,
-              email: perfil.email,
-              telefone: perfil.telefone || '',
-              funcao: perfil.funcao || 'Voluntário',
-              naipe: perfil.naipe || 'Vocal',
-              campus: nomeCampus,
-              nomeIgreja: nomeIgrejaLider || nomeCampus,
-              igrejaId: perfil.igreja_id || null,
-              cargo: perfil.cargo || (perfil.tipo_conta === 'lider' ? 'Líder' : 'Voluntário'),
-              tipoConta: perfil.tipo_conta || 'voluntario',
-              statusAcesso: perfil.status_acesso || 'pendente',
-              disponivel: perfil.disponivel !== false,
-              notificacoes: perfil.notificacoes !== false,
-              temaEscuro: Boolean(perfil.tema_escuro)
-            }
-            setUsuario(userObj)
-            setEstaAutenticado(true)
-            await carregarDadosDoBanco(userObj)
-          } else {
-            setEstaAutenticado(false)
-          }
-        } else {
+    async function processarSessao(sessionUser) {
+      if (!sessionUser) {
+        if (ativo) {
+          setUsuario(null)
           setEstaAutenticado(false)
+          setCarregandoDados(false)
           // Carrega lista de congregações ativas para o dropdown do cadastro
           const { data: dataIgrejas } = await supabase
             .from('igrejas')
             .select('*')
             .order('nome')
-          if (dataIgrejas) setIgrejas(dataIgrejas)
+          if (ativo && dataIgrejas) setIgrejas(dataIgrejas)
+        }
+        return
+      }
+
+      try {
+        const perfil = await obterPerfilUsuario(sessionUser.id)
+        if (perfil && ativo) {
+          const userObj = await montarObjetoUsuario(perfil, sessionUser)
+          if (ativo) {
+            setUsuario(userObj)
+            setEstaAutenticado(true)
+            await carregarDadosDoBanco()
+          }
+        } else if (ativo) {
+          setEstaAutenticado(false)
         }
       } catch (e) {
         console.error('Erro na checagem de sessão inicial:', e)
       } finally {
-        setCarregandoDados(false)
+        if (ativo) {
+          setCarregandoDados(false)
+        }
+      }
+    }
+
+    async function inicializarSessao() {
+      if (!supabaseConfigurado || !supabase) {
+        if (ativo) setCarregandoDados(false)
+        return
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (ativo) {
+          await processarSessao(session?.user || null)
+        }
+      } catch (e) {
+        console.error('Erro ao obter sessão inicial:', e)
+        if (ativo) setCarregandoDados(false)
       }
     }
 
@@ -426,66 +574,27 @@ export function AppProvider({ children }) {
 
     // Ouvinte em tempo real de mudanças de sessão do Supabase Auth
     const { data: authListener } = supabase?.auth?.onAuthStateChange?.(async (event, session) => {
-      if (session?.user) {
-        const perfil = await obterPerfilUsuario(session.user.id)
-        if (perfil) {
-          const meta = session.user.user_metadata || {}
-          let nomeIgrejaLider = meta.nomeIgreja || meta.nome_igreja || perfil.nome_igreja || ''
-          let nomeCampus = 'Cruz Church'
+      if (!ativo) return
 
-          if (perfil.igreja_id) {
-            const { data: igData } = await supabase
-              .from('igrejas')
-              .select('nome')
-              .eq('id', perfil.igreja_id)
-              .maybeSingle()
-            if (igData?.nome) {
-              nomeCampus = igData.nome
-            }
-          } else if (nomeIgrejaLider) {
-            nomeCampus = nomeIgrejaLider
-          } else {
-            const { data: solLider } = await supabase
-              .from('solicitacoes_lideres')
-              .select('nome_igreja')
-              .eq('user_id', session.user.id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle()
-            if (solLider?.nome_igreja) {
-              nomeIgrejaLider = solLider.nome_igreja
-              nomeCampus = solLider.nome_igreja
-            }
-          }
-
-          const userObj = {
-            id: perfil.id,
-            nome: perfil.nome,
-            email: perfil.email,
-            telefone: perfil.telefone || '',
-            funcao: perfil.funcao || 'Voluntário',
-            naipe: perfil.naipe || 'Vocal',
-            campus: nomeCampus,
-            nomeIgreja: nomeIgrejaLider || nomeCampus,
-            igrejaId: perfil.igreja_id || null,
-            cargo: perfil.cargo || (perfil.tipo_conta === 'lider' ? 'Líder' : 'Voluntário'),
-            tipoConta: perfil.tipo_conta || 'voluntario',
-            statusAcesso: perfil.status_acesso || 'pendente',
-            disponivel: perfil.disponivel !== false,
-            notificacoes: perfil.notificacoes !== false,
-            temaEscuro: Boolean(perfil.tema_escuro)
-          }
-          setUsuario(userObj)
-          setEstaAutenticado(true)
-          await carregarDadosDoBanco(userObj)
-        }
-      } else if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT') {
         setUsuario(null)
         setEstaAutenticado(false)
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // Fluxo de recuperação de senha: deixa o usuário na tela de redefinição
+        return
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (window.location.pathname.startsWith('/redefinir-senha')) {
+          // Permanece focado no fluxo de redefinição de senha
+          return
+        }
+        if (session?.user && usuarioRef.current?.id !== session.user.id) {
+          await processarSessao(session.user)
+        }
       }
     }) || { data: { subscription: null } }
 
     return () => {
+      ativo = false
       authListener?.subscription?.unsubscribe?.()
     }
   }, [carregarDadosDoBanco])
@@ -495,9 +604,13 @@ export function AppProvider({ children }) {
   // ============================================================================
   const totalEscalasPendentes = escalas.filter(e => e.status === 'pendente').length
   const totalTrocasPendentes = pedidosTroca.filter(t => t.status === 'pendente').length
-  const totalSolicitacoesPendentes = solicitacoesVoluntarios.filter(
-    s => s.status === 'pendente' && (!usuario?.igrejaId || s.igrejaId === usuario.igrejaId)
-  ).length
+  const totalSolicitacoesPendentes = solicitacoesVoluntarios.filter(s => {
+    if (s.status !== 'pendente') return false
+    if (usuario?.tipoConta === 'admin') return true
+    const idIgrejaLider = Number(usuario?.igrejaId || (igrejas.length > 0 ? igrejas[0].id : null))
+    const idIgrejaSol = Number(s.igrejaId || (igrejas.length === 1 ? igrejas[0].id : null))
+    return idIgrejaSol === idIgrejaLider || igrejas.length === 1
+  }).length
   const totalSolicitacoesLideresPendentes = solicitacoesLideres.filter(s => s.status === 'pendente').length
   const totalIgrejasAtivas = igrejas.filter(i => i.ativa !== false).length
   const totalLideresAprovados = igrejas.filter(i => i.lider && !i.lider.includes('Sem Líder')).length
@@ -509,7 +622,9 @@ export function AppProvider({ children }) {
 
   // 1. Cadastro de Voluntário no Supabase Auth
   async function cadastrarVoluntario({ nome, email, senha, telefone, igrejaId, funcao }) {
-    const igreja = igrejas.find(i => i.id === Number(igrejaId)) || igrejas[0]
+    const rawId = Number(igrejaId) || (igrejas && igrejas.length > 0 ? igrejas[0].id : null)
+    const igreja = igrejas.find(i => i.id === rawId) || igrejas[0]
+    const targetIgrejaId = igreja ? igreja.id : rawId
     const naipe = obterNaipePorFuncao(funcao)
 
     const data = await cadastrarComSupabase({
@@ -518,7 +633,7 @@ export function AppProvider({ children }) {
       nome,
       telefone,
       tipoConta: 'voluntario',
-      igrejaId: igreja ? igreja.id : 1,
+      igrejaId: targetIgrejaId,
       funcao: funcao || 'Vocal',
       naipe
     })
@@ -531,7 +646,7 @@ export function AppProvider({ children }) {
       funcao: funcao || 'Voluntário',
       naipe,
       campus: igreja ? igreja.nome : 'Cruz Church',
-      igrejaId: igreja ? igreja.id : 1,
+      igrejaId: targetIgrejaId,
       cargo: 'Voluntário',
       tipoConta: 'voluntario',
       statusAcesso: 'pendente',
@@ -588,31 +703,10 @@ export function AppProvider({ children }) {
     const { user, perfil } = await loginComSupabase(dadosUsuario.email, dadosUsuario.senha)
 
     if (perfil) {
-      const meta = user?.user_metadata || {}
-      const nomeIgrejaMeta = meta.nomeIgreja || meta.nome_igreja || perfil.nome_igreja || ''
-      const igrejaAssociada = igrejas.find(i => i.id === perfil.igreja_id)
-      const nomeCampus = igrejaAssociada?.nome || nomeIgrejaMeta || (perfil.igreja_id ? 'Cruz Church' : nomeIgrejaMeta || 'Cruz Church')
-
-      const userObj = {
-        id: perfil.id,
-        nome: perfil.nome,
-        email: perfil.email,
-        telefone: perfil.telefone || '',
-        funcao: perfil.funcao || 'Voluntário',
-        naipe: perfil.naipe || 'Vocal',
-        campus: nomeCampus,
-        nomeIgreja: nomeIgrejaMeta || nomeCampus,
-        igrejaId: perfil.igreja_id || null,
-        cargo: perfil.cargo || (perfil.tipo_conta === 'lider' ? 'Líder' : 'Voluntário'),
-        tipoConta: perfil.tipo_conta || 'voluntario',
-        statusAcesso: perfil.status_acesso || 'pendente',
-        disponivel: perfil.disponivel !== false,
-        notificacoes: perfil.notificacoes !== false,
-        temaEscuro: Boolean(perfil.tema_escuro)
-      }
+      const userObj = await montarObjetoUsuario(perfil, user)
       setUsuario(userObj)
       setEstaAutenticado(true)
-      await carregarDadosDoBanco(userObj)
+      await carregarDadosDoBanco()
       return { sucesso: true, perfil: userObj }
     }
 
@@ -640,8 +734,10 @@ export function AppProvider({ children }) {
     const solicitacao = solicitacoesLideres.find(s => Number(s.id) === Number(solicitacaoId))
     if (!solicitacao) return
 
+    const targetUserId = solicitacao.userId || solicitacao.user_id
+
     setSolicitacoesLideres(prev =>
-      prev.map(s => Number(s.id) === Number(solicitacaoId) ? { ...s, status: 'aprovado' } : s)
+      prev.map(s => (Number(s.id) === Number(solicitacaoId) || (solicitacao.email && s.email === solicitacao.email)) ? { ...s, status: 'aprovado' } : s)
     )
 
     if (supabaseConfigurado && supabase) {
@@ -671,6 +767,19 @@ export function AppProvider({ children }) {
           .update({ status: 'aprovado' })
           .eq('id', solicitacaoId)
 
+        if (solicitacao.email) {
+          await supabase
+            .from('solicitacoes_lideres')
+            .update({ status: 'aprovado' })
+            .eq('email', solicitacao.email)
+        }
+        if (targetUserId) {
+          await supabase
+            .from('solicitacoes_lideres')
+            .update({ status: 'aprovado' })
+            .eq('user_id', targetUserId)
+        }
+
         if (vincularIgrejaExistente && idIgreja) {
           await supabase
             .from('igrejas')
@@ -696,8 +805,6 @@ export function AppProvider({ children }) {
             setIgrejas(prev => [...prev, novaIg])
           }
         }
-
-        const targetUserId = solicitacao.userId || solicitacao.user_id
 
         const dadosAtualizacao = {
           status_acesso: 'aprovado',
@@ -729,8 +836,6 @@ export function AppProvider({ children }) {
         }
       }
 
-      const targetUserId = solicitacao.userId || solicitacao.user_id
-
       // 3. Atualiza na lista local de equipeMembros
       setEquipeMembros(prev =>
         prev.map(m =>
@@ -760,11 +865,18 @@ export function AppProvider({ children }) {
 
   // Recusar solicitação de líder (Admin)
   async function recusarSolicitacaoLider(solicitacaoId, motivoRecusa = '') {
+    const solicitacao = solicitacoesLideres.find(s => Number(s.id) === Number(solicitacaoId))
     setSolicitacoesLideres(prev =>
-      prev.map(s => s.id === solicitacaoId ? { ...s, status: 'recusado', motivoRecusa } : s)
+      prev.map(s => (Number(s.id) === Number(solicitacaoId) || (solicitacao?.email && s.email === solicitacao.email)) ? { ...s, status: 'recusado', motivoRecusa } : s)
     )
 
     if (supabaseConfigurado && supabase) {
+      if (solicitacao?.email) {
+        await supabase
+          .from('solicitacoes_lideres')
+          .update({ status: 'recusado', motivo_recusa: motivoRecusa })
+          .eq('email', solicitacao.email)
+      }
       await supabase
         .from('solicitacoes_lideres')
         .update({ status: 'recusado', motivo_recusa: motivoRecusa })
@@ -844,6 +956,9 @@ export function AppProvider({ children }) {
     const solicitacao = solicitacoesVoluntarios.find(s => s.id === solicitacaoId)
     if (!solicitacao) return
 
+    const targetUserId = solicitacao.userId || solicitacao.user_id
+    const targetIgrejaId = Number(solicitacao.igrejaId || solicitacao.igreja_id || usuario?.igrejaId || (igrejas.length > 0 ? igrejas[0].id : null))
+
     setSolicitacoesVoluntarios(prev =>
       prev.map(s => s.id === solicitacaoId ? { ...s, status: 'aprovado' } : s)
     )
@@ -854,17 +969,25 @@ export function AppProvider({ children }) {
         .update({ status: 'aprovado' })
         .eq('id', solicitacaoId)
 
-      if (solicitacao.user_id) {
+      if (targetUserId) {
         await supabase
           .from('perfis')
-          .update({ status_acesso: 'aprovado' })
-          .eq('id', solicitacao.user_id)
+          .update({
+            status_acesso: 'aprovado',
+            igreja_id: targetIgrejaId
+          })
+          .eq('id', targetUserId)
       }
     }
+
+    await carregarDadosDoBanco()
   }
 
   // Recusar voluntário (Líder)
   async function recusarVoluntario(solicitacaoId) {
+    const solicitacao = solicitacoesVoluntarios.find(s => s.id === solicitacaoId)
+    const targetUserId = solicitacao?.userId || solicitacao?.user_id
+
     setSolicitacoesVoluntarios(prev =>
       prev.map(s => s.id === solicitacaoId ? { ...s, status: 'recusado' } : s)
     )
@@ -874,7 +997,16 @@ export function AppProvider({ children }) {
         .from('solicitacoes_voluntarios')
         .update({ status: 'recusado' })
         .eq('id', solicitacaoId)
+
+      if (targetUserId) {
+        await supabase
+          .from('perfis')
+          .update({ status_acesso: 'recusado' })
+          .eq('id', targetUserId)
+      }
     }
+
+    await carregarDadosDoBanco()
   }
 
   // Alterar categoria musical do integrante (Líder)
@@ -933,27 +1065,74 @@ export function AppProvider({ children }) {
   }
 
   // Verifica em tempo real o status de aprovação do usuário no Supabase
-  async function verificarStatusAcesso() {
-    if (!usuario?.id || !supabaseConfigurado || !supabase) {
-      return usuario?.statusAcesso || 'pendente'
+  const verificarStatusAcesso = useCallback(async () => {
+    const userAtual = usuarioRef.current
+    if (!userAtual?.id || !supabaseConfigurado || !supabase) {
+      return userAtual?.statusAcesso || 'pendente'
     }
 
     try {
-      let perfil = await obterPerfilUsuario(usuario.id)
-      if (!perfil && usuario.email) {
-        const { data: pEmail } = await supabase.from('perfis').select('*').eq('email', usuario.email).maybeSingle()
+      let perfil = await obterPerfilUsuario(userAtual.id)
+      if (!perfil && userAtual.email) {
+        const { data: pEmail } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('email', userAtual.email)
+          .maybeSingle()
         perfil = pEmail
       }
 
-      if (!perfil) {
-        // Se o perfil estava ausente, sincroniza e recria no banco
-        perfil = await sincronizarPerfilSeAusente(usuario)
+      // Se for líder e perfil ainda não estiver aprovado, checa se a solicitação já foi aprovada no painel admin
+      if (userAtual.tipoConta === 'lider' && perfil?.status_acesso !== 'aprovado') {
+        const { data: solAprovada } = await supabase
+          .from('solicitacoes_lideres')
+          .select('*')
+          .or(`user_id.eq.${userAtual.id},email.eq.${userAtual.email}`)
+          .eq('status', 'aprovado')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (solAprovada) {
+          await supabase
+            .from('perfis')
+            .update({ status_acesso: 'aprovado', cargo: 'Líder' })
+            .or(`id.eq.${userAtual.id},email.eq.${userAtual.email}`)
+
+          if (perfil) {
+            perfil.status_acesso = 'aprovado'
+            perfil.cargo = 'Líder'
+          }
+        }
+      }
+
+      // Se for voluntário e perfil ainda não estiver aprovado, checa se foi aprovado
+      if (userAtual.tipoConta === 'voluntario' && perfil?.status_acesso !== 'aprovado') {
+        const { data: solVolAprovada } = await supabase
+          .from('solicitacoes_voluntarios')
+          .select('*')
+          .or(`user_id.eq.${userAtual.id},email.eq.${userAtual.email}`)
+          .eq('status', 'aprovado')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (solVolAprovada) {
+          await supabase
+            .from('perfis')
+            .update({ status_acesso: 'aprovado' })
+            .or(`id.eq.${userAtual.id},email.eq.${userAtual.email}`)
+
+          if (perfil) {
+            perfil.status_acesso = 'aprovado'
+          }
+        }
       }
 
       if (perfil) {
         const statusNovo = perfil.status_acesso || perfil.statusAcesso || 'pendente'
-        const meta = usuario.user_metadata || {}
-        let nomeIgrejaMeta = usuario.nomeIgreja || meta.nomeIgreja || perfil.nome_igreja || ''
+        const meta = userAtual.user_metadata || {}
+        let nomeIgrejaMeta = userAtual.nomeIgreja || meta.nomeIgreja || perfil.nome_igreja || ''
         let nomeCampus = ''
 
         if (perfil.igreja_id) {
@@ -980,23 +1159,30 @@ export function AppProvider({ children }) {
           }
         }
 
-        const campusFinal = nomeCampus || nomeIgrejaMeta || (usuario.campus !== 'Cruz Church' ? usuario.campus : '') || 'Cruz Church'
+        const campusFinal = nomeCampus || nomeIgrejaMeta || (userAtual.campus !== 'Cruz Church' ? userAtual.campus : '') || 'Cruz Church'
 
-        const userAtualizado = {
-          ...usuario,
-          id: perfil.id,
-          statusAcesso: statusNovo,
-          cargo: perfil.cargo || (perfil.tipo_conta === 'lider' ? 'Líder' : (usuario.cargo || 'Voluntário')),
-          tipoConta: perfil.tipo_conta || usuario.tipoConta || 'voluntario',
-          igrejaId: perfil.igreja_id || usuario.igrejaId || null,
-          campus: campusFinal,
-          nomeIgreja: nomeIgrejaMeta || campusFinal
-        }
-        setUsuario(userAtualizado)
+        const houveMudanca =
+          userAtual.statusAcesso !== statusNovo ||
+          userAtual.igrejaId !== (perfil.igreja_id || null) ||
+          userAtual.tipoConta !== (perfil.tipo_conta || userAtual.tipoConta) ||
+          userAtual.campus !== campusFinal
 
-        // Se foi aprovado, recarrega os dados do ministério
-        if (statusNovo === 'aprovado') {
-          await carregarDadosDoBanco(userAtualizado)
+        if (houveMudanca) {
+          const userAtualizado = {
+            ...userAtual,
+            id: perfil.id,
+            statusAcesso: statusNovo,
+            cargo: perfil.cargo || (perfil.tipo_conta === 'lider' ? 'Líder' : (userAtual.cargo || 'Voluntário')),
+            tipoConta: perfil.tipo_conta || userAtual.tipoConta || 'voluntario',
+            igrejaId: perfil.igreja_id || userAtual.igrejaId || null,
+            campus: campusFinal,
+            nomeIgreja: nomeIgrejaMeta || campusFinal
+          }
+          setUsuario(userAtualizado)
+
+          if (statusNovo === 'aprovado') {
+            await carregarDadosDoBanco()
+          }
         }
         return statusNovo
       }
@@ -1004,8 +1190,8 @@ export function AppProvider({ children }) {
       console.warn('Erro ao checar status de acesso no Supabase:', e)
     }
 
-    return usuario?.statusAcesso || 'pendente'
-  }
+    return userAtual?.statusAcesso || 'pendente'
+  }, [carregarDadosDoBanco])
 
   // Atualizar função no perfil pessoal (Usuário)
   async function atualizarMinhaFuncao(novaFuncao) {
@@ -1169,31 +1355,295 @@ export function AppProvider({ children }) {
   }
 
   // Criar novo evento na agenda (Cultos, Ensaios)
-  async function criarEventoAgenda({ titulo, tipo, data, hora, local, descricao }) {
-    if (supabaseConfigurado && supabase) {
-      const dataCurta = data ? `${data.substring(8, 10)}/${data.substring(5, 7)}` : ''
+  async function criarEventoAgenda({
+    titulo,
+    tipo = 'Culto',
+    data,
+    hora = '19:00',
+    local,
+    descricao = '',
+    igrejaId = null,
+    criarEscalaAuto = false
+  }) {
+    if (!supabaseConfigurado || !supabase) {
+      throw new Error('Supabase não conectado.')
+    }
 
-      const { data: novoEv, error } = await supabase
-        .from('agenda_eventos')
-        .insert({
-          igreja_id: usuario?.igrejaId || 1,
-          titulo,
-          tipo: tipo || 'Culto',
-          data,
-          hora: hora ? (hora.length === 5 ? `${hora}:00` : hora) : '19:00:00',
-          data_formatada: data,
-          data_curta: dataCurta,
-          local: local || usuario?.campus || 'Templo Principal',
-          descricao: descricao || ''
-        })
-        .select()
-        .single()
+    // Identifica dinamicamente a congregação correta (nunca usa fallback 1)
+    const rawIgrejaId =
+      igrejaId ||
+      usuario?.igrejaId ||
+      (igrejas && igrejas.length > 0 ? igrejas[0].id : null)
 
-      if (!error && novoEv) {
-        await carregarDadosDoBanco()
-        return novoEv
+    const targetIgrejaId = rawIgrejaId ? Number(rawIgrejaId) : null
+
+    if (!targetIgrejaId || isNaN(targetIgrejaId)) {
+      throw new Error('Nenhuma congregação vinculada para registrar o evento.')
+    }
+
+    const dataCurta = data ? `${data.substring(8, 10)}/${data.substring(5, 7)}` : ''
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    let dataFormatada = data
+    if (data && data.length >= 10) {
+      const [ano, mes, dia] = data.split('-')
+      const mesNome = meses[parseInt(mes, 10) - 1] || mes
+      dataFormatada = `${dia} de ${mesNome} de ${ano}`
+    }
+
+    const horaFormatada = hora ? (hora.length === 5 ? `${hora}:00` : hora) : '19:00:00'
+
+    const { data: novoEv, error } = await supabase
+      .from('agenda_eventos')
+      .insert({
+        igreja_id: targetIgrejaId,
+        titulo,
+        tipo: tipo || 'Culto',
+        data,
+        hora: horaFormatada,
+        data_formatada: dataFormatada,
+        data_curta: dataCurta,
+        local: local || usuario?.campus || 'Templo Central',
+        descricao: descricao || ''
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Erro ao inserir evento na agenda no Supabase:', error)
+      throw new Error(error.message || 'Erro ao registrar evento no banco de dados.')
+    }
+
+    // Se solicitado criar escala automaticamente junto com o evento:
+    if (criarEscalaAuto && novoEv?.id) {
+      try {
+        await supabase
+          .from('escalas')
+          .insert({
+            igreja_id: targetIgrejaId,
+            evento_id: novoEv.id,
+            evento_nome: titulo,
+            tipo: tipo || 'Culto',
+            data,
+            data_formatada: dataFormatada,
+            data_curta: dataCurta,
+            hora: horaFormatada,
+            local: local || usuario?.campus || 'Templo Central',
+            observacoes: descricao || '',
+            status_geral: 'publicada'
+          })
+      } catch (errEscala) {
+        console.warn('Aviso ao criar escala automática para evento:', errEscala)
       }
     }
+
+    await carregarDadosDoBanco()
+    return novoEv
+  }
+
+  // Atualizar evento existente na agenda no Supabase
+  async function atualizarEventoAgenda(eventoId, {
+    titulo,
+    tipo = 'Culto',
+    data,
+    hora = '19:00',
+    local,
+    descricao = '',
+    igrejaId = null
+  }) {
+    if (!supabaseConfigurado || !supabase) {
+      throw new Error('Supabase não conectado.')
+    }
+    if (!eventoId) {
+      throw new Error('ID do evento não informado.')
+    }
+
+    const dataCurta = data ? `${data.substring(8, 10)}/${data.substring(5, 7)}` : ''
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    let dataFormatada = data
+    if (data && data.length >= 10) {
+      const [ano, mes, dia] = data.split('-')
+      const mesNome = meses[parseInt(mes, 10) - 1] || mes
+      dataFormatada = `${dia} de ${mesNome} de ${ano}`
+    }
+
+    const horaFormatada = hora ? (hora.length === 5 ? `${hora}:00` : hora) : '19:00:00'
+
+    const payloadAtualizacao = {
+      titulo,
+      tipo: tipo || 'Culto',
+      data,
+      hora: horaFormatada,
+      data_formatada: dataFormatada,
+      data_curta: dataCurta,
+      local: local || usuario?.campus || 'Templo Central',
+      descricao: descricao || '',
+      updated_at: new Date().toISOString()
+    }
+
+    if (igrejaId) {
+      payloadAtualizacao.igreja_id = Number(igrejaId)
+    }
+
+    const { data: evAtualizado, error } = await supabase
+      .from('agenda_eventos')
+      .update(payloadAtualizacao)
+      .eq('id', eventoId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Erro ao atualizar evento na agenda no Supabase:', error)
+      throw new Error(error.message || 'Erro ao atualizar evento no banco de dados.')
+    }
+
+    // Atualiza também os dados na escala vinculada correspondente (se houver)
+    try {
+      await supabase
+        .from('escalas')
+        .update({
+          evento_nome: titulo,
+          tipo: tipo || 'Culto',
+          data,
+          data_formatada: dataFormatada,
+          data_curta: dataCurta,
+          hora: horaFormatada,
+          local: local || usuario?.campus || 'Templo Central',
+          updated_at: new Date().toISOString()
+        })
+        .eq('evento_id', eventoId)
+    } catch (errSyncEscala) {
+      console.warn('Aviso ao sincronizar escala vinculada:', errSyncEscala)
+    }
+
+    await carregarDadosDoBanco()
+    return evAtualizado
+  }
+
+  // Excluir evento da agenda no Supabase (e opcionalmente escala vinculada)
+  async function excluirEventoAgenda(eventoId, excluirEscalaVinculada = true) {
+    if (!supabaseConfigurado || !supabase) {
+      throw new Error('Supabase não conectado.')
+    }
+    if (!eventoId) {
+      throw new Error('ID do evento não informado.')
+    }
+
+    // Se solicitado excluir a escala vinculada a este evento:
+    if (excluirEscalaVinculada) {
+      try {
+        await supabase
+          .from('escalas')
+          .delete()
+          .eq('evento_id', eventoId)
+      } catch (errDelEscala) {
+        console.warn('Aviso ao excluir escala vinculada:', errDelEscala)
+      }
+    }
+
+    const { error } = await supabase
+      .from('agenda_eventos')
+      .delete()
+      .eq('id', eventoId)
+
+    if (error) {
+      console.error('Erro ao excluir evento da agenda no Supabase:', error)
+      throw new Error(error.message || 'Erro ao excluir evento no banco de dados.')
+    }
+
+    await carregarDadosDoBanco()
+    return true
+  }
+
+  // Criar nova escala ministerial avulsa no Supabase
+  async function criarEscala({
+    eventoId = null,
+    eventoNome,
+    tipo = 'Culto',
+    data,
+    hora = '19:00',
+    local,
+    observacoes = '',
+    igrejaId = null,
+    statusGeral = 'publicada',
+    integrantes = [],
+    repertorio = []
+  }) {
+    if (!supabaseConfigurado || !supabase) {
+      throw new Error('Supabase não conectado.')
+    }
+
+    const rawIgrejaId =
+      igrejaId ||
+      usuario?.igrejaId ||
+      (igrejas && igrejas.length > 0 ? igrejas[0].id : null)
+
+    const targetIgrejaId = rawIgrejaId ? Number(rawIgrejaId) : null
+
+    if (!targetIgrejaId || isNaN(targetIgrejaId)) {
+      throw new Error('Nenhuma congregação encontrada para associar à escala.')
+    }
+
+    const dataCurta = data ? `${data.substring(8, 10)}/${data.substring(5, 7)}` : ''
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    let dataFormatada = data
+    if (data && data.length >= 10) {
+      const [ano, mes, dia] = data.split('-')
+      const mesNome = meses[parseInt(mes, 10) - 1] || mes
+      dataFormatada = `${dia} de ${mesNome} de ${ano}`
+    }
+
+    const horaFormatada = hora ? (hora.length === 5 ? `${hora}:00` : hora) : '19:00:00'
+
+    const { data: novaEscala, error: errEsc } = await supabase
+      .from('escalas')
+      .insert({
+        igreja_id: targetIgrejaId,
+        evento_id: eventoId,
+        evento_nome: eventoNome,
+        tipo,
+        data,
+        data_formatada: dataFormatada,
+        data_curta: dataCurta,
+        hora: horaFormatada,
+        local: local || usuario?.campus || 'Templo Central',
+        observacoes,
+        status_geral: statusGeral
+      })
+      .select()
+      .single()
+
+    if (errEsc) {
+      console.error('Erro ao criar escala no Supabase:', errEsc)
+      throw new Error(errEsc.message || 'Erro ao criar escala no banco de dados.')
+    }
+
+    // Se houver integrantes selecionados, insere na tabela escala_integrantes
+    if (integrantes && integrantes.length > 0 && novaEscala?.id) {
+      const rowsIntegrantes = integrantes.map(i => ({
+        escala_id: novaEscala.id,
+        user_id: i.userId || i.id,
+        funcao: i.funcao || 'Voluntário',
+        naipe: i.naipe || 'Geral',
+        status: i.status || 'pendente'
+      }))
+
+      await supabase.from('escala_integrantes').insert(rowsIntegrantes)
+    }
+
+    // Se houver repertório selecionado, insere na tabela escala_repertorio
+    if (repertorio && repertorio.length > 0 && novaEscala?.id) {
+      const rowsMusicas = repertorio.map((m, idx) => ({
+        escala_id: novaEscala.id,
+        musica_id: m.musicaId || m.id,
+        ordem: idx + 1,
+        tom_escolhido: m.tom || m.tom_escolhido
+      }))
+
+      await supabase.from('escala_repertorio').insert(rowsMusicas)
+    }
+
+    await carregarDadosDoBanco()
+    return novaEscala
   }
 
   // Excluir evento da agenda
@@ -1322,7 +1772,9 @@ export function AppProvider({ children }) {
         alternarStatusIgreja,
         revogarLiderancaIgreja,
         criarEventoAgenda,
+        atualizarEventoAgenda,
         excluirEventoAgenda,
+        criarEscala,
         comunicados,
         criarComunicado,
         aprovarVoluntario,

@@ -36,6 +36,10 @@ function Agenda() {
     confirmarPresenca,
     solicitarSubstituicao,
     criarEventoAgenda,
+    atualizarEventoAgenda,
+    excluirEventoAgenda,
+    criarEscala,
+    igrejas,
     usuario
   } = useAppContext()
 
@@ -51,15 +55,18 @@ function Agenda() {
   // Escala ativa na aba "Escalas"
   const [escalaSelecionadaId, setEscalaSelecionadaId] = useState(null)
 
-  // Modal de Criação de Evento (Líder / Admin)
+  // Modal de Criação / Edição de Evento (Líder / Admin)
   const [modalNovoEvento, setModalNovoEvento] = useState(false)
+  const [eventoEmEdicao, setEventoEmEdicao] = useState(null)
   const [formEvento, setFormEvento] = useState({
     titulo: '',
     tipo: 'Culto',
     data: new Date().toISOString().substring(0, 10),
     hora: '19:00',
     local: usuario?.campus || 'Templo Central',
-    descricao: ''
+    descricao: '',
+    igrejaId: usuario?.igrejaId ? String(usuario.igrejaId) : (igrejas && igrejas.length > 0 ? String(igrejas[0].id) : ''),
+    criarEscalaAuto: true
   })
   const [salvandoEvento, setSalvandoEvento] = useState(false)
 
@@ -213,7 +220,59 @@ function Agenda() {
     return eventosIgreja
   }, [eventosIgreja, diaSelecionado, anoAtual, mesAtual])
 
-  // Salvar novo evento real no Supabase
+  // Abrir modal configurando para NOVO evento
+  function abrirModalNovoEvento() {
+    setEventoEmEdicao(null)
+    setFormEvento({
+      titulo: '',
+      tipo: 'Culto',
+      data: new Date().toISOString().substring(0, 10),
+      hora: '19:00',
+      local: usuario?.campus || 'Templo Central',
+      descricao: '',
+      igrejaId: usuario?.igrejaId ? String(usuario.igrejaId) : (igrejas && igrejas.length > 0 ? String(igrejas[0].id) : ''),
+      criarEscalaAuto: true
+    })
+    setModalNovoEvento(true)
+  }
+
+  // Abrir modal configurado para EDITAR evento existente
+  function abrirModalEditarEvento(ev, e) {
+    if (e) e.stopPropagation()
+    setEventoEmEdicao(ev)
+    setFormEvento({
+      titulo: ev.titulo || '',
+      tipo: ev.tipo || 'Culto',
+      data: ev.data || new Date().toISOString().substring(0, 10),
+      hora: ev.hora ? ev.hora.substring(0, 5) : '19:00',
+      local: ev.local || usuario?.campus || 'Templo Central',
+      descricao: ev.descricao || '',
+      igrejaId: ev.igrejaId ? String(ev.igrejaId) : (usuario?.igrejaId ? String(usuario.igrejaId) : (igrejas && igrejas.length > 0 ? String(igrejas[0].id) : '')),
+      criarEscalaAuto: false
+    })
+    setModalNovoEvento(true)
+  }
+
+  // Excluir evento existente do banco de dados
+  async function handleExcluirEvento(ev, e) {
+    if (e) e.stopPropagation()
+    const confirmou = window.confirm(
+      `Deseja realmente excluir o evento "${ev.titulo}" (${ev.data})?\n\n` +
+      `Se houver escala vinculada a este evento, ela também será removida.`
+    )
+    if (!confirmou) return
+
+    try {
+      if (excluirEventoAgenda) {
+        await excluirEventoAgenda(ev.id)
+        alert('Evento excluído com sucesso!')
+      }
+    } catch (err) {
+      alert('Erro ao excluir evento: ' + (err.message || 'Falha na comunicação com o banco.'))
+    }
+  }
+
+  // Salvar evento (Novo ou Edição) no Supabase
   async function handleSalvarEvento(e) {
     e.preventDefault()
     if (!formEvento.titulo) {
@@ -223,20 +282,39 @@ function Agenda() {
 
     setSalvandoEvento(true)
     try {
-      if (criarEventoAgenda) {
-        await criarEventoAgenda(formEvento)
+      if (eventoEmEdicao) {
+        // Atualização de evento existente
+        if (atualizarEventoAgenda) {
+          await atualizarEventoAgenda(eventoEmEdicao.id, {
+            ...formEvento,
+            igrejaId: formEvento.igrejaId ? Number(formEvento.igrejaId) : (usuario?.igrejaId ? Number(usuario.igrejaId) : null)
+          })
+        }
+        alert('Evento atualizado com sucesso!')
+      } else {
+        // Criação de novo evento
+        if (criarEventoAgenda) {
+          await criarEventoAgenda({
+            ...formEvento,
+            igrejaId: formEvento.igrejaId ? Number(formEvento.igrejaId) : (usuario?.igrejaId ? Number(usuario.igrejaId) : null)
+          })
+        }
+        alert('Evento agendado com sucesso!')
       }
       setModalNovoEvento(false)
+      setEventoEmEdicao(null)
       setFormEvento({
         titulo: '',
         tipo: 'Culto',
         data: new Date().toISOString().substring(0, 10),
         hora: '19:00',
         local: usuario?.campus || 'Templo Central',
-        descricao: ''
+        descricao: '',
+        igrejaId: usuario?.igrejaId ? String(usuario.igrejaId) : (igrejas && igrejas.length > 0 ? String(igrejas[0].id) : ''),
+        criarEscalaAuto: true
       })
     } catch (err) {
-      alert('Erro ao agendar evento: ' + (err.message || 'Falha na comunicação.'))
+      alert('Erro ao salvar evento: ' + (err.message || 'Falha na comunicação.'))
     } finally {
       setSalvandoEvento(false)
     }
@@ -259,7 +337,7 @@ function Agenda() {
               className="btn-add-evento"
               aria-label="Novo evento"
               title="Adicionar Novo Evento"
-              onClick={() => setModalNovoEvento(true)}
+              onClick={abrirModalNovoEvento}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="12" y1="5" x2="12" y2="19" />
@@ -405,11 +483,40 @@ function Agenda() {
                             </p>
                           )}
                         </div>
-                        <div className="evento-seta">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5">
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </div>
+                        {ehLider ? (
+                          <div className="evento-acoes-lider" onClick={e => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className="btn-acao-evento btn-editar-evento"
+                              title="Editar Evento"
+                              aria-label="Editar Evento"
+                              onClick={e => abrirModalEditarEvento(ev, e)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-acao-evento btn-excluir-evento"
+                              title="Excluir Evento"
+                              aria-label="Excluir Evento"
+                              onClick={e => handleExcluirEvento(ev, e)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="evento-seta">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
@@ -744,9 +851,19 @@ function Agenda() {
                   Ainda não há escalas montadas no banco de dados para os próximos cultos desta congregação.
                 </p>
                 {ehLider && (
-                  <p style={{ fontSize: '12px', color: '#64748b' }}>
-                    Como líder, você pode montar novas escalas e associar voluntários e repertório.
-                  </p>
+                  <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                      Como líder, você pode montar novas escalas e associar voluntários e repertório.
+                    </p>
+                    <button
+                      type="button"
+                      className="btn-salvar-modal-agenda"
+                      style={{ padding: '8px 18px', fontSize: '13px' }}
+                      onClick={abrirModalNovoEvento}
+                    >
+                      + Agendar Culto &amp; Criar Escala
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -761,11 +878,14 @@ function Agenda() {
         <div className="modal-agenda-backdrop" onClick={() => setModalNovoEvento(false)}>
           <div className="modal-agenda-caixa" onClick={e => e.stopPropagation()}>
             <div className="modal-agenda-header">
-              <h3>Novo Evento na Agenda</h3>
+              <h3>{eventoEmEdicao ? 'Editar Evento da Agenda' : 'Novo Evento na Agenda'}</h3>
               <button
                 type="button"
                 className="btn-fechar-modal-agenda"
-                onClick={() => setModalNovoEvento(false)}
+                onClick={() => {
+                  setModalNovoEvento(false)
+                  setEventoEmEdicao(null)
+                }}
               >
                 ✕
               </button>
@@ -773,6 +893,24 @@ function Agenda() {
 
             <form onSubmit={handleSalvarEvento}>
               <div className="modal-agenda-corpo">
+                {/* Seleção de Congregação se houver mais de uma ou se for Admin */}
+                {igrejas && igrejas.length > 1 && (
+                  <div className="campo-modal-agenda">
+                    <label htmlFor="ev-igreja">Congregação / Igreja *</label>
+                    <select
+                      id="ev-igreja"
+                      value={formEvento.igrejaId}
+                      onChange={e => setFormEvento({ ...formEvento, igrejaId: e.target.value })}
+                    >
+                      {igrejas.map(ig => (
+                        <option key={ig.id} value={ig.id}>
+                          {ig.nome} {ig.cidade ? `(${ig.cidade})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="campo-modal-agenda">
                   <label htmlFor="ev-titulo">Nome do Evento / Culto *</label>
                   <input
@@ -844,23 +982,60 @@ function Agenda() {
                     onChange={e => setFormEvento({ ...formEvento, descricao: e.target.value })}
                   ></textarea>
                 </div>
+
+                {!eventoEmEdicao && (
+                  <div className="campo-modal-agenda">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <input
+                        type="checkbox"
+                        checked={formEvento.criarEscalaAuto}
+                        onChange={e => setFormEvento({ ...formEvento, criarEscalaAuto: e.target.checked })}
+                        style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                      <span>Gerar escala de louvor para este culto automaticamente</span>
+                    </label>
+                  </div>
+                )}
               </div>
 
-              <div className="modal-agenda-rodape">
-                <button
-                  type="button"
-                  className="btn-cancelar-modal-agenda"
-                  onClick={() => setModalNovoEvento(false)}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn-salvar-modal-agenda"
-                  disabled={salvandoEvento}
-                >
-                  {salvandoEvento ? 'Salvando...' : 'Salvar no Banco'}
-                </button>
+              <div className="modal-agenda-rodape" style={{ justifyContent: eventoEmEdicao ? 'space-between' : 'flex-end' }}>
+                {eventoEmEdicao && (
+                  <button
+                    type="button"
+                    className="btn-excluir-modal-agenda"
+                    onClick={() => {
+                      const ev = eventoEmEdicao
+                      setModalNovoEvento(false)
+                      setEventoEmEdicao(null)
+                      handleExcluirEvento(ev)
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Excluir Evento
+                  </button>
+                )}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    className="btn-cancelar-modal-agenda"
+                    onClick={() => {
+                      setModalNovoEvento(false)
+                      setEventoEmEdicao(null)
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-salvar-modal-agenda"
+                    disabled={salvandoEvento}
+                  >
+                    {salvandoEvento ? 'Salvando...' : (eventoEmEdicao ? 'Salvar Alterações' : 'Salvar no Banco')}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

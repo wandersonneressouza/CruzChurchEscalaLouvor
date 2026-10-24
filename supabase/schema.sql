@@ -462,18 +462,18 @@ BEGIN
     UPPER(SUBSTRING(v_nome FROM 1 FOR 2))
   )
   ON CONFLICT (id) DO UPDATE SET
-    nome = EXCLUDED.nome,
-    email = EXCLUDED.email,
-    telefone = EXCLUDED.telefone,
-    funcao = EXCLUDED.funcao,
-    naipe = EXCLUDED.naipe,
-    tipo_conta = EXCLUDED.tipo_conta,
-    status_acesso = EXCLUDED.status_acesso,
+    nome = COALESCE(NULLIF(EXCLUDED.nome, ''), perfis.nome),
+    email = COALESCE(NULLIF(EXCLUDED.email, ''), perfis.email),
+    telefone = COALESCE(NULLIF(EXCLUDED.telefone, ''), perfis.telefone),
+    funcao = COALESCE(NULLIF(EXCLUDED.funcao, ''), perfis.funcao),
+    naipe = COALESCE(NULLIF(EXCLUDED.naipe, ''), perfis.naipe),
+    status_acesso = CASE WHEN perfis.status_acesso = 'aprovado' THEN 'aprovado' ELSE EXCLUDED.status_acesso END,
+    igreja_id = COALESCE(perfis.igreja_id, EXCLUDED.igreja_id),
     updated_at = timezone('utc'::text, now());
 
   -- 2. Se for líder solicitante, insere automaticamente na fila de solicitações de líderes
   IF v_tipo_conta = 'lider' AND v_nome_igreja IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE user_id = new.id AND status = 'pendente') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE user_id = new.id AND status IN ('pendente', 'aprovada')) THEN
       INSERT INTO public.solicitacoes_lideres (
         user_id,
         nome,
@@ -496,7 +496,7 @@ BEGIN
 
   -- 3. Se for voluntário, insere automaticamente na fila de aprovação da congregação
   IF v_tipo_conta = 'voluntario' AND v_igreja_id IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE user_id = new.id AND status = 'pendente') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE user_id = new.id AND status IN ('pendente', 'aprovada')) THEN
       INSERT INTO public.solicitacoes_voluntarios (
         user_id,
         nome,
@@ -523,10 +523,10 @@ BEGIN
 END;
 $$;
 
--- Ativa o trigger após inserção ou atualização de metadados em auth.users
+-- Ativa o trigger após inserção de novos usuários em auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
-  AFTER INSERT OR UPDATE ON auth.users
+  AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ==============================================================================

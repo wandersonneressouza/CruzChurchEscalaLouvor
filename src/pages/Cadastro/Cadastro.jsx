@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import { CATEGORIAS_MUSICAIS, TODAS_AS_FUNCOES } from '../../constants/categoriasMusicais'
@@ -19,10 +19,20 @@ function Cadastro() {
   const [telefone, setTelefone] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
 
-  // Dados para Voluntário
-  const [igrejaSelecionada, setIgrejaSelecionada] = useState(igrejas[0]?.id || 1)
+  // Dados para Voluntário (sincroniza com a primeira congregação real cadastrada)
+  const [igrejaSelecionada, setIgrejaSelecionada] = useState(igrejas && igrejas.length > 0 ? String(igrejas[0].id) : '')
   const [buscaIgreja, setBuscaIgreja] = useState('')
   const [funcaoSelecionada, setFuncaoSelecionada] = useState(TODAS_AS_FUNCOES[0]?.funcao || 'Vocal Líder')
+
+  // Atualiza igrejaSelecionada assim que a lista de congregações for carregada do Supabase
+  useEffect(() => {
+    if (igrejas && igrejas.length > 0) {
+      setIgrejaSelecionada(prev => {
+        const existe = igrejas.some(i => String(i.id) === String(prev))
+        return existe ? prev : String(igrejas[0].id)
+      })
+    }
+  }, [igrejas])
 
   // Dados para Líder
   const [nomeIgrejaLider, setNomeIgrejaLider] = useState('')
@@ -56,12 +66,19 @@ function Cadastro() {
 
     try {
       if (tipoConta === 'voluntario') {
+        const idIgrejaFinal = Number(igrejaSelecionada) || (igrejas && igrejas.length > 0 ? igrejas[0].id : null)
+        if (!idIgrejaFinal) {
+          setErro('Nenhuma congregação ativa encontrada para vincular o voluntário.')
+          setCarregando(false)
+          return
+        }
+
         await cadastrarVoluntario({
           nome,
           email: email.trim(),
           senha,
           telefone,
-          igrejaId: Number(igrejaSelecionada),
+          igrejaId: idIgrejaFinal,
           funcao: funcaoSelecionada
         })
       } else {

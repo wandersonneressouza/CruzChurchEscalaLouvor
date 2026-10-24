@@ -9,41 +9,80 @@ import Agenda from './pages/Agenda/Agenda'
 import Repertorio from './pages/Repertorio/Repertorio'
 import Devocional from './pages/Devocional/Devocional'
 import Mais from './pages/Mais/Mais'
+import RedefinirSenha from './pages/RedefinirSenha/RedefinirSenha'
 
-// Componente para proteger rotas internas: só acessa se autenticado E com statusAcesso === 'aprovado'
+// Helper para verificar se o usuário é administrador geral
+function checarEhAdmin(usuario) {
+  if (!usuario) return false
+  return (
+    usuario.tipoConta === 'admin' ||
+    usuario.tipo_conta === 'admin' ||
+    usuario.cargo === 'ADMIN' ||
+    usuario.email === 'djandersonneres@hotmail.com'
+  )
+}
+
+// Componente de carregamento visual consistente
+function TelaCarregando() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#1e5ec8', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+    </div>
+  )
+}
+
+// Componente para proteger rotas internas do aplicativo comum:
+// - Administradores NÃO acessam o app comum: são redirecionados para /admin
+// - Usuários comuns só acessam se autenticados E aprovados
 function RotaPrivada({ children }) {
   const { estaAutenticado, usuario, carregandoDados } = useAppContext()
-  if (carregandoDados) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#1e5ec8', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      </div>
-    )
+  if (carregandoDados || (estaAutenticado && !usuario)) {
+    return <TelaCarregando />
   }
   if (!estaAutenticado) return <Navigate to="/login" replace />
+
+  // Administrador tem acesso exclusivo ao painel /admin
+  if (checarEhAdmin(usuario)) {
+    return <Navigate to="/admin" replace />
+  }
+
   if (usuario && usuario.statusAcesso && usuario.statusAcesso !== 'aprovado') {
     return <Navigate to="/aguardando-aprovacao" replace />
   }
   return children
 }
 
-// Rota de aguardo: para usuários autenticados cujo status ainda não é aprovado (ou revogado/recusado)
+// Rota de aguardo: para voluntários/líderes pendentes
 function RotaAguardando({ children }) {
   const { estaAutenticado, usuario, carregandoDados } = useAppContext()
-  if (carregandoDados) return null
+  if (carregandoDados || (estaAutenticado && !usuario)) {
+    return <TelaCarregando />
+  }
   if (!estaAutenticado) return <Navigate to="/login" replace />
+
+  if (checarEhAdmin(usuario)) {
+    return <Navigate to="/admin" replace />
+  }
+
   if (usuario && usuario.statusAcesso === 'aprovado') {
     return <Navigate to="/" replace />
   }
   return children
 }
 
-// Componente para telas públicas (Login, Cadastro)
+// Componente para telas públicas (Login, Cadastro):
+// Se autenticado e for admin -> vai direto para /admin
+// Se autenticado e for comum aprovado -> vai para /
 function RotaPublica({ children }) {
   const { estaAutenticado, usuario, carregandoDados } = useAppContext()
-  if (carregandoDados) return null
-  if (estaAutenticado) {
-    if (usuario && usuario.statusAcesso && usuario.statusAcesso !== 'aprovado') {
+  if (carregandoDados || (estaAutenticado && !usuario)) {
+    return <TelaCarregando />
+  }
+  if (estaAutenticado && usuario) {
+    if (checarEhAdmin(usuario)) {
+      return <Navigate to="/admin" replace />
+    }
+    if (usuario.statusAcesso && usuario.statusAcesso !== 'aprovado') {
       return <Navigate to="/aguardando-aprovacao" replace />
     }
     return <Navigate to="/" replace />
@@ -54,16 +93,12 @@ function RotaPublica({ children }) {
 // Componente de proteção de rota ADMIN: só acessa se autenticado E se perfil for admin
 function RotaAdmin({ children }) {
   const { estaAutenticado, usuario, carregandoDados } = useAppContext()
-  if (carregandoDados) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#1e5ec8', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      </div>
-    )
+  if (carregandoDados || (estaAutenticado && !usuario)) {
+    return <TelaCarregando />
   }
   if (!estaAutenticado) return <Navigate to="/login?admin=1" replace />
-  const ehAdmin = usuario?.tipoConta === 'admin' || usuario?.tipo_conta === 'admin' || usuario?.cargo === 'ADMIN'
-  if (!ehAdmin) {
+
+  if (!checarEhAdmin(usuario)) {
     return <Navigate to="/" replace />
   }
   return children
@@ -71,13 +106,16 @@ function RotaAdmin({ children }) {
 
 function AppRotas() {
   const location = useLocation()
-  const ehAdmin = location.pathname.startsWith('/admin')
+  const { usuario } = useAppContext()
+  const ehAdmin = checarEhAdmin(usuario)
+  const naAreaAdmin = location.pathname.startsWith('/admin')
 
   return (
-    <div className={ehAdmin ? 'admin-layout-container' : 'app-container'}>
+    <div className={naAreaAdmin ? 'admin-layout-container' : 'app-container'}>
       <Routes>
         <Route path="/login" element={<RotaPublica><Login /></RotaPublica>} />
         <Route path="/cadastro" element={<RotaPublica><Cadastro /></RotaPublica>} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
         <Route path="/aguardando-aprovacao" element={<RotaAguardando><AguardandoAprovacao /></RotaAguardando>} />
         <Route path="/admin" element={<RotaAdmin><AdminDashboard /></RotaAdmin>} />
         <Route path="/" element={<RotaPrivada><Inicio /></RotaPrivada>} />
@@ -85,7 +123,7 @@ function AppRotas() {
         <Route path="/musicas" element={<RotaPrivada><Repertorio /></RotaPrivada>} />
         <Route path="/devocional" element={<RotaPrivada><Devocional /></RotaPrivada>} />
         <Route path="/mais" element={<RotaPrivada><Mais /></RotaPrivada>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={ehAdmin ? '/admin' : '/'} replace />} />
       </Routes>
     </div>
   )

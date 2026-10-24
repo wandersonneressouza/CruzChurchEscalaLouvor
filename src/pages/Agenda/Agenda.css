@@ -292,6 +292,53 @@
   height: 16px;
 }
 
+#tela-agenda .evento-acoes-lider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+#tela-agenda .btn-acao-evento {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+#tela-agenda .btn-acao-evento svg {
+  width: 15px;
+  height: 15px;
+}
+
+#tela-agenda .btn-editar-evento {
+  color: var(--primary);
+}
+
+#tela-agenda .btn-editar-evento:hover {
+  background: rgba(30, 94, 200, 0.08);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+#tela-agenda .btn-excluir-evento {
+  color: #ef4444;
+}
+
+#tela-agenda .btn-excluir-evento:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
 /* Card Alerta de Escalas Pendentes */
 #tela-agenda .card-alerta-pendente {
   background-color: #edf4fe;
@@ -891,4 +938,24 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+#tela-agenda .btn-excluir-modal-agenda {
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+#tela-agenda .btn-excluir-modal-agenda:hover {
+  background: #fee2e2;
+  border-color: #f87171;
 }

@@ -122,7 +122,7 @@ function Inicio() {
 
         {/* Banner de Solicitações Pendentes para o Líder */}
         {ehLider && totalSolicitacoesPendentes > 0 && (
-          <Link to="/mais" className="banner-solicitacoes-pendentes">
+          <Link to="/mais?aba=solicitacoes" className="banner-solicitacoes-pendentes">
             <div className="icone-alerta-banner">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

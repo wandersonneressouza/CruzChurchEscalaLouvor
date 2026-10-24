@@ -1,0 +1,339 @@
+/* REDEFINIR SENHA — Estilos escopados sob #tela-redefinir-senha */
+
+#tela-redefinir-senha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--bg-app, #f8fafc);
+  padding: 24px 16px;
+  position: relative;
+}
+
+#tela-redefinir-senha .redefinir-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--bg-card, #ffffff);
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-light, #e2e8f0);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeInRedefinir 0.3s ease-out;
+}
+
+@keyframes fadeInRedefinir {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   CABEÇALHO
+   ========================================= */
+#tela-redefinir-senha .redefinir-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+#tela-redefinir-senha .redefinir-logo-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(30, 94, 200, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+#tela-redefinir-senha .redefinir-logo-box:hover {
+  transform: scale(1.05);
+}
+
+#tela-redefinir-senha .cruz-svg {
+  width: 100%;
+  height: 100%;
+}
+
+#tela-redefinir-senha .redefinir-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+#tela-redefinir-senha .redefinir-subtitulo {
+  font-size: 14px;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* =========================================
+   ALERTAS
+   ========================================= */
+#tela-redefinir-senha .redefinir-alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#tela-redefinir-senha .redefinir-alerta svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+#tela-redefinir-senha .redefinir-alerta.erro {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+/* =========================================
+   FORMULÁRIO
+   ========================================= */
+#tela-redefinir-senha .form-redefinir {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#tela-redefinir-senha .form-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#tela-redefinir-senha .form-campo label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+#tela-redefinir-senha .input-senha-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#tela-redefinir-senha .input-senha-wrapper input,
+#tela-redefinir-senha .form-campo > input {
+  width: 100%;
+  padding: 13px 44px 13px 14px;
+  background-color: #f8fafc;
+  border: 1.5px solid var(--border-light, #e2e8f0);
+  border-radius: var(--radius-md, 10px);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary, #0f172a);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+#tela-redefinir-senha .form-campo > input {
+  padding-right: 14px;
+}
+
+#tela-redefinir-senha .input-senha-wrapper input:focus,
+#tela-redefinir-senha .form-campo > input:focus {
+  background-color: #ffffff;
+  border-color: var(--primary, #1e5ec8);
+  box-shadow: 0 0 0 3px rgba(30, 94, 200, 0.15);
+}
+
+#tela-redefinir-senha .btn-toggle-senha-redefinir {
+  position: absolute;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted, #94a3b8);
+  border-radius: 6px;
+  transition: color 0.2s ease;
+}
+
+#tela-redefinir-senha .btn-toggle-senha-redefinir:hover {
+  color: var(--text-primary, #0f172a);
+}
+
+#tela-redefinir-senha .btn-toggle-senha-redefinir svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Requisitos de senha */
+#tela-redefinir-senha .requisitos-senha {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: -2px;
+}
+
+/* =========================================
+   BOTÕES DE AÇÃO
+   ========================================= */
+#tela-redefinir-senha .btn-salvar-senha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #1e5ec8 0%, #164db0 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-lg, 12px);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(30, 94, 200, 0.3);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: 6px;
+}
+
+#tela-redefinir-senha .btn-salvar-senha:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(30, 94, 200, 0.4);
+}
+
+#tela-redefinir-senha .btn-salvar-senha:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#tela-redefinir-senha .spinner-redefinir {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spinRedefinir 0.7s linear infinite;
+}
+
+@keyframes spinRedefinir {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================
+   ESTADO DE SUCESSO
+   ========================================= */
+#tela-redefinir-senha .redefinir-sucesso-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 8px;
+  gap: 14px;
+  animation: fadeInRedefinir 0.4s ease-out;
+}
+
+#tela-redefinir-senha .icone-sucesso {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #ecfdf5;
+  border: 2px solid #a7f3d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tela-redefinir-senha .icone-sucesso svg {
+  width: 30px;
+  height: 30px;
+}
+
+#tela-redefinir-senha .redefinir-sucesso-box h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #065f46;
+  margin: 0;
+}
+
+#tela-redefinir-senha .redefinir-sucesso-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.5;
+  margin: 0;
+}
+
+#tela-redefinir-senha .btn-ir-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 13px;
+  background-color: #10b981;
+  color: #ffffff;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+#tela-redefinir-senha .btn-ir-login:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   ESTADO DE LINK EXPIRADO / INVÁLIDO
+   ========================================= */
+#tela-redefinir-senha .redefinir-invalido-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+#tela-redefinir-senha .btn-voltar-login-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 13px;
+  background-color: #f1f5f9;
+  color: var(--text-primary, #0f172a);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+#tela-redefinir-senha .btn-voltar-login-link:hover {
+  background-color: #e2e8f0;
+}

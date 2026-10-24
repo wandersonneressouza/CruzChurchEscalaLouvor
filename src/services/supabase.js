@@ -63,19 +63,23 @@ export async function loginComSupabase(email, senha) {
     throw error
   }
 
-  // Busca o perfil correspondente na tabela public.perfis
-  let { data: perfil, error: erroPerfil } = await supabase
+  // Busca o perfil correspondente na tabela public.perfis (por ID ou por e-mail)
+  let { data: perfil } = await supabase
     .from('perfis')
     .select('*')
     .eq('id', data.user.id)
-    .single()
+    .maybeSingle()
 
-  if (erroPerfil && erroPerfil.code !== 'PGRST116') {
-    console.error('Aviso ao carregar perfil:', erroPerfil)
+  if (!perfil && data.user.email) {
+    const { data: pEmail } = await supabase
+      .from('perfis')
+      .select('*')
+      .eq('email', data.user.email)
+      .maybeSingle()
+    if (pEmail) perfil = pEmail
   }
 
-  // Se o perfil não foi encontrado (ex: usuário re-cadastrado ou apagado de perfis),
-  // executa sincronização automática para recriar o perfil e a solicitação no banco!
+  // Se o perfil realmente não foi encontrado, executa sincronização segura
   if (!perfil) {
     try {
       perfil = await sincronizarPerfilSeAusente(data.user)
@@ -200,8 +204,24 @@ export async function redefinirSenhaSupabase(email) {
     throw new Error('Supabase não configurado no .env')
   }
 
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/login`
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: `${window.location.origin}/redefinir-senha`
+  })
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Atualiza a senha da conta atualmente autenticada (usado no fluxo de redefinição de senha)
+ */
+export async function atualizarSenhaSupabase(novaSenha) {
+  if (!supabaseConfigurado || !supabase) {
+    throw new Error('Supabase não configurado no .env')
+  }
+
+  const { data, error } = await supabase.auth.updateUser({
+    password: novaSenha
   })
 
   if (error) throw error
@@ -252,72 +272,120 @@ export async function obterPerfilUsuario(userId) {
 export async function sincronizarPerfilSeAusente(user, dadosExtras = {}) {
   if (!supabaseConfigurado || !supabase || !user?.id) return null
 
-  // 1. Tenta via RPC seguro do banco de dados se disponível
+  // 1. PRIMEIRO: Verifica se o perfil já existe na tabela perfis (por ID ou por e-mail)
   try {
-    const { data: rpcPerfil, error: errRpc } = await supabase.rpc('recriar_perfil_se_ausente', {
-      target_user_id: user.id
-    })
-    if (!errRpc && rpcPerfil) {
-      return rpcPerfil
-    }
-  } catch (eRpc) {
-    // Continua para o fallback de inserção direta
-  }
-
-  // 2. Fallback: Verificação e inserção direta via Supabase
-  try {
-    const { data: existente } = await supabase
+    let { data: existente } = await supabase
       .from('perfis')
       .select('*')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (existente) return existente
-
-    const meta = user.user_metadata || {}
-    const nome = dadosExtras.nome || meta.nome || splitEmail(user.email)
-    const telefone = dadosExtras.telefone || meta.telefone || ''
-    const tipoConta = dadosExtras.tipoConta || meta.tipoConta || 'voluntario'
-    const funcao = dadosExtras.funcao || meta.funcao || 'Voluntário'
-    const naipe = dadosExtras.naipe || meta.naipe || 'Vocal'
-    const igrejaId = dadosExtras.igrejaId || meta.igrejaId ? Number(dadosExtras.igrejaId || meta.igrejaId) : 1
-    const nomeIgreja = dadosExtras.nomeIgreja || meta.nomeIgreja || ''
-    const cidadeIgreja = dadosExtras.cidadeIgreja || meta.cidadeIgreja || ''
-
-    let statusAcesso = 'pendente'
-    if (tipoConta === 'admin') statusAcesso = 'aprovado'
-    else if (tipoConta === 'lider') statusAcesso = 'pendente_lider'
-
-    const novoPerfil = {
-      id: user.id,
-      nome,
-      email: user.email,
-      telefone,
-      funcao,
-      naipe,
-      igreja_id: igrejaId,
-      cargo: tipoConta === 'admin' ? 'ADMIN' : tipoConta === 'lider' ? 'Líder' : 'Voluntário',
-      tipo_conta: tipoConta,
-      status_acesso: statusAcesso,
-      avatar: nome ? nome.substring(0, 2).toUpperCase() : 'MB'
+    if (!existente && user.email) {
+      const { data: pEmail } = await supabase
+        .from('perfis')
+        .select('*')
+        .eq('email', user.email)
+        .maybeSingle()
+      if (pEmail) existente = pEmail
     }
 
+    // Se o perfil já existe, garante que se for voluntário pendente ele também esteja na fila de solicitações
+    if (existente) {
+      if (existente.tipo_conta === 'voluntario' && existente.status_acesso === 'pendente') {
+        const idIgrejaVol = dadosExtras.igrejaId ? Number(dadosExtras.igrejaId) : (existente.igreja_id ? Number(existente.igreja_id) : null)
+        if (idIgrejaVol) {
+          const { data: jaTemSol } = await supabase
+            .from('solicitacoes_voluntarios')
+            .select('id')
+            .or(`user_id.eq.${user.id},email.eq.${user.email}`)
+            .limit(1)
+            .maybeSingle()
+
+          if (!jaTemSol) {
+            await supabase.from('solicitacoes_voluntarios').insert({
+              user_id: user.id,
+              nome: existente.nome,
+              email: user.email,
+              telefone: existente.telefone || '',
+              igreja_id: idIgrejaVol,
+              funcao: existente.funcao || 'Voluntário',
+              naipe: existente.naipe || 'Vocal',
+              status: 'pendente'
+            })
+          }
+        }
+      }
+      return existente
+    }
+  } catch (errCheck) {
+    console.warn('Aviso ao checar perfil existente:', errCheck)
+  }
+
+  // 2. Extrai dados para criação segura
+  const meta = user.user_metadata || {}
+  const nome = dadosExtras.nome || meta.nome || splitEmail(user.email)
+  const telefone = dadosExtras.telefone || meta.telefone || ''
+  const tipoConta = dadosExtras.tipoConta || meta.tipoConta || 'voluntario'
+  const funcao = dadosExtras.funcao || meta.funcao || 'Voluntário'
+  const naipe = dadosExtras.naipe || meta.naipe || 'Vocal'
+  const igrejaId = dadosExtras.igrejaId ? Number(dadosExtras.igrejaId) : (meta.igrejaId ? Number(meta.igrejaId) : null)
+  const nomeIgreja = dadosExtras.nomeIgreja || meta.nomeIgreja || ''
+  const cidadeIgreja = dadosExtras.cidadeIgreja || meta.cidadeIgreja || ''
+
+  let statusAcesso = 'pendente'
+  if (tipoConta === 'admin' || user.email === 'djandersonneres@hotmail.com') {
+    statusAcesso = 'aprovado'
+  } else if (tipoConta === 'lider') {
+    statusAcesso = 'pendente_lider'
+    // Checa se já havia sido aprovado em solicitacoes_lideres
+    try {
+      const { data: solAnterior } = await supabase
+        .from('solicitacoes_lideres')
+        .select('status, id')
+        .or(`user_id.eq.${user.id},email.eq.${user.email}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (solAnterior?.status === 'aprovado') {
+        statusAcesso = 'aprovado'
+      }
+    } catch (eSol) {
+      console.warn('Aviso ao consultar solicitação anterior de líder:', eSol)
+    }
+  }
+
+  const novoPerfil = {
+    id: user.id,
+    nome,
+    email: user.email,
+    telefone,
+    funcao,
+    naipe,
+    igreja_id: igrejaId,
+    cargo: (tipoConta === 'admin' || user.email === 'djandersonneres@hotmail.com') ? 'ADMIN' : (tipoConta === 'lider' ? 'Líder' : 'Voluntário'),
+    tipo_conta: (user.email === 'djandersonneres@hotmail.com') ? 'admin' : tipoConta,
+    status_acesso: statusAcesso,
+    avatar: nome ? nome.substring(0, 2).toUpperCase() : 'MB'
+  }
+
+  try {
     const { data: inserido } = await supabase
       .from('perfis')
-      .upsert(novoPerfil)
+      .upsert(novoPerfil, { onConflict: 'id' })
       .select()
       .maybeSingle()
 
-    // Insere na fila de solicitações para aparecer no painel Admin / Líder
+    // Insere na fila de solicitações SOMENTE SE NÃO HOUVER NENHUMA SOLICITAÇÃO PRÉVIA (evita duplicatas!)
     if (tipoConta === 'lider' && nomeIgreja) {
-      const { data: solLid } = await supabase
+      const { data: solExistente } = await supabase
         .from('solicitacoes_lideres')
         .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'pendente')
+        .or(`user_id.eq.${user.id},email.eq.${user.email}`)
+        .limit(1)
         .maybeSingle()
 
-      if (!solLid) {
+      if (!solExistente) {
         await supabase.from('solicitacoes_lideres').insert({
           user_id: user.id,
           nome,
@@ -329,14 +397,14 @@ export async function sincronizarPerfilSeAusente(user, dadosExtras = {}) {
         })
       }
     } else if (tipoConta === 'voluntario' && igrejaId) {
-      const { data: solVol } = await supabase
+      const { data: solVolExistente } = await supabase
         .from('solicitacoes_voluntarios')
         .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'pendente')
+        .or(`user_id.eq.${user.id},email.eq.${user.email}`)
+        .limit(1)
         .maybeSingle()
 
-      if (!solVol) {
+      if (!solVolExistente) {
         await supabase.from('solicitacoes_voluntarios').insert({
           user_id: user.id,
           nome,
