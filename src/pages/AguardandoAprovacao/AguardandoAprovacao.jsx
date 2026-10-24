@@ -13,8 +13,10 @@ function AguardandoAprovacao() {
 
   // Checa automaticamente ao carregar e monitora em segundo plano a cada 4 segundos
   useEffect(() => {
+    const destinoAprovado = (usuario?.tipoConta === 'admin' || usuario?.cargo === 'ADMIN' || usuario?.email === 'djandersonneres@hotmail.com') ? '/admin' : '/'
+
     if (usuario?.statusAcesso === 'aprovado') {
-      navigate('/')
+      navigate(destinoAprovado, { replace: true })
       return
     }
 
@@ -24,7 +26,7 @@ function AguardandoAprovacao() {
         try {
           const statusNovo = await verificarStatusAcesso()
           if (statusNovo === 'aprovado' && ativo) {
-            navigate('/')
+            navigate(destinoAprovado, { replace: true })
           }
         } catch (e) {
           // Silencioso em segundo plano
@@ -42,7 +44,7 @@ function AguardandoAprovacao() {
       ativo = false
       clearInterval(timer)
     }
-  }, [usuario?.statusAcesso, verificarStatusAcesso, navigate])
+  }, [usuario?.statusAcesso, usuario?.tipoConta, usuario?.cargo, usuario?.email, verificarStatusAcesso, navigate])
 
   // Checar status manualmente
   async function handleVerificarStatus() {
@@ -52,7 +54,8 @@ function AguardandoAprovacao() {
       if (verificarStatusAcesso) {
         const statusNovo = await verificarStatusAcesso()
         if (statusNovo === 'aprovado') {
-          navigate('/')
+          const destino = (usuario?.tipoConta === 'admin' || usuario?.cargo === 'ADMIN' || usuario?.email === 'djandersonneres@hotmail.com') ? '/admin' : '/'
+          navigate(destino, { replace: true })
           return
         }
       }

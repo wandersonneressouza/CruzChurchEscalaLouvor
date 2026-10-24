@@ -20,6 +20,8 @@ function Login() {
   const [modalRecuperacao, setModalRecuperacao] = useState(false)
   const [emailRecuperacao, setEmailRecuperacao] = useState('')
   const [recuperacaoEnviada, setRecuperacaoEnviada] = useState(false)
+  const [enviandoRecuperacao, setEnviandoRecuperacao] = useState(false)
+  const [erroRecuperacao, setErroRecuperacao] = useState('')
 
   // Preenche dados caso venha redirecionado para acesso admin
   useEffect(() => {
@@ -41,11 +43,18 @@ function Login() {
         senha: senha,
         lembrar: lembrarAcesso
       })
-      setCarregando(false)
-      if (res?.perfil?.tipoConta === 'admin' || res?.perfil?.tipo_conta === 'admin' || res?.perfil?.cargo === 'ADMIN') {
-        navigate('/admin')
+      const p = res?.perfil
+      const ehAdmin =
+        p?.tipoConta === 'admin' ||
+        p?.tipo_conta === 'admin' ||
+        p?.cargo === 'ADMIN' ||
+        p?.email === 'djandersonneres@hotmail.com' ||
+        email.trim().toLowerCase() === 'djandersonneres@hotmail.com'
+
+      if (ehAdmin) {
+        navigate('/admin', { replace: true })
       } else {
-        navigate('/')
+        navigate('/', { replace: true })
       }
     } catch (err) {
       console.error('Erro ao efetuar login:', err)
@@ -86,7 +95,10 @@ function Login() {
   // Enviar recuperação de senha
   async function handleRecuperarSenha(e) {
     e.preventDefault()
-    if (!emailRecuperacao) return
+    if (!emailRecuperacao.trim()) return
+
+    setErroRecuperacao('')
+    setEnviandoRecuperacao(true)
 
     try {
       if (supabaseConfigurado) {
@@ -97,9 +109,13 @@ function Login() {
         setModalRecuperacao(false)
         setRecuperacaoEnviada(false)
         setEmailRecuperacao('')
-      }, 3000)
+        setErroRecuperacao('')
+      }, 4000)
     } catch (err) {
-      alert(err.message || 'Erro ao enviar e-mail de recuperação.')
+      console.error('Erro na recuperação:', err)
+      setErroRecuperacao(err.message || 'Erro ao enviar e-mail de recuperação. Tente novamente.')
+    } finally {
+      setEnviandoRecuperacao(false)
     }
   }
 
@@ -330,8 +346,23 @@ function Login() {
               <button className="btn-fechar-modal" onClick={() => setModalRecuperacao(false)}>✕</button>
             </div>
             <p className="modal-sub">
-              Informe seu e-mail para receber as instruções de redefinição de acesso.
+              Informe seu e-mail cadastrado para receber o link de redefinição de acesso.
             </p>
+
+            {erroRecuperacao && (
+              <div style={{
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#991b1b',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                marginBottom: '14px',
+                lineHeight: 1.4
+              }}>
+                {erroRecuperacao}
+              </div>
+            )}
 
             {!recuperacaoEnviada ? (
               <form onSubmit={handleRecuperarSenha} className="form-recuperar">
@@ -341,9 +372,16 @@ function Login() {
                   onChange={(e) => setEmailRecuperacao(e.target.value)}
                   placeholder="seu.email@cruzchurch.com"
                   required
+                  disabled={enviandoRecuperacao}
+                  autoFocus
                 />
-                <button type="submit" className="btn-enviar-recuperacao">
-                  Enviar Link de Recuperação
+                <button
+                  type="submit"
+                  className="btn-enviar-recuperacao"
+                  disabled={enviandoRecuperacao}
+                  style={enviandoRecuperacao ? { opacity: 0.7, cursor: 'not-allowed' } : {}}
+                >
+                  {enviandoRecuperacao ? 'Enviando link...' : 'Enviar Link de Recuperação'}
                 </button>
               </form>
             ) : (
@@ -351,7 +389,7 @@ function Login() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <p>Link de recuperação enviado para o e-mail!</p>
+                <p>Link de recuperação enviado com sucesso! Verifique sua caixa de entrada e spam.</p>
               </div>
             )}
           </div>

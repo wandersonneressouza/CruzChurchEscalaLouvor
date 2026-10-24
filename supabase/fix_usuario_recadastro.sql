@@ -55,6 +55,12 @@ BEGIN
     RETURN NULL;
   END IF;
 
+  -- 0. Se o perfil já existe na tabela public.perfis, NUNCA sobrescreva seu status!
+  SELECT * INTO v_perfil FROM public.perfis WHERE id = target_user_id;
+  IF FOUND THEN
+    RETURN to_jsonb(v_perfil);
+  END IF;
+
   -- Extrai metadados cadastrados
   v_nome := COALESCE(v_user.raw_user_meta_data->>'nome', split_part(v_user.email, '@', 1));
   v_telefone := v_user.raw_user_meta_data->>'telefone';
@@ -65,36 +71,43 @@ BEGIN
   v_nome_igreja := v_user.raw_user_meta_data->>'nomeIgreja';
   v_cidade_igreja := v_user.raw_user_meta_data->>'cidadeIgreja';
 
-  IF v_tipo_conta = 'admin' THEN
+  IF v_tipo_conta = 'admin' OR v_user.email = 'djandersonneres@hotmail.com' THEN
     v_status_acesso := 'aprovado';
   ELSIF v_tipo_conta = 'lider' THEN
-    v_status_acesso := 'pendente_lider';
+    -- Checa se já havia sido aprovado anteriormente pelo Admin
+    IF EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE (user_id = target_user_id OR email = v_user.email) AND status = 'aprovado') THEN
+      v_status_acesso := 'aprovado';
+    ELSE
+      v_status_acesso := 'pendente_lider';
+    END IF;
   ELSE
-    v_status_acesso := 'pendente';
+    IF EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE (user_id = target_user_id OR email = v_user.email) AND status = 'aprovado') THEN
+      v_status_acesso := 'aprovado';
+    ELSE
+      v_status_acesso := 'pendente';
+    END IF;
   END IF;
 
-  -- Insere ou atualiza public.perfis
+  -- Insere na tabela public.perfis
   INSERT INTO public.perfis (
     id, nome, email, telefone, funcao, naipe, igreja_id, cargo, tipo_conta, status_acesso, avatar
   ) VALUES (
     v_user.id, v_nome, v_user.email, v_telefone, v_funcao, v_naipe, v_igreja_id,
-    CASE WHEN v_tipo_conta = 'admin' THEN 'ADMIN' WHEN v_tipo_conta = 'lider' THEN 'Líder' ELSE 'Voluntário' END,
-    v_tipo_conta, v_status_acesso, UPPER(SUBSTRING(v_nome FROM 1 FOR 2))
+    CASE WHEN v_tipo_conta = 'admin' OR v_user.email = 'djandersonneres@hotmail.com' THEN 'ADMIN' WHEN v_tipo_conta = 'lider' THEN 'Líder' ELSE 'Voluntário' END,
+    CASE WHEN v_user.email = 'djandersonneres@hotmail.com' THEN 'admin' ELSE v_tipo_conta END,
+    v_status_acesso,
+    UPPER(SUBSTRING(v_nome FROM 1 FOR 2))
   )
-  ON CONFLICT (id) DO UPDATE SET
-    nome = EXCLUDED.nome,
-    email = EXCLUDED.email,
-    telefone = EXCLUDED.telefone,
-    funcao = EXCLUDED.funcao,
-    naipe = EXCLUDED.naipe,
-    tipo_conta = EXCLUDED.tipo_conta,
-    status_acesso = EXCLUDED.status_acesso,
-    updated_at = timezone('utc'::text, now())
+  ON CONFLICT (id) DO NOTHING
   RETURNING * INTO v_perfil;
 
-  -- Se for líder, recria a solicitação na fila do Admin caso não exista pendente
+  IF v_perfil IS NULL THEN
+    SELECT * INTO v_perfil FROM public.perfis WHERE id = target_user_id;
+  END IF;
+
+  -- Se for líder, recria a solicitação na fila do Admin APENAS se não houver NENHUMA solicitação prévia (evita duplicatas!)
   IF v_tipo_conta = 'lider' AND v_nome_igreja IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE user_id = target_user_id AND status = 'pendente') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE user_id = target_user_id OR email = v_user.email) THEN
       INSERT INTO public.solicitacoes_lideres (
         user_id, nome, email, telefone, nome_igreja, cidade_igreja, status
       ) VALUES (
@@ -103,9 +116,9 @@ BEGIN
     END IF;
   END IF;
 
-  -- Se for voluntário, recria a solicitação na fila da igreja caso não exista pendente
+  -- Se for voluntário, recria a solicitação na fila da igreja APENAS se não houver solicitação prévia
   IF v_tipo_conta = 'voluntario' AND v_igreja_id IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE user_id = target_user_id AND status = 'pendente') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE user_id = target_user_id OR email = v_user.email) THEN
       INSERT INTO public.solicitacoes_voluntarios (
         user_id, nome, email, telefone, igreja_id, funcao, naipe, status
       ) VALUES (
@@ -162,17 +175,17 @@ BEGIN
     v_tipo_conta, v_status_acesso, UPPER(SUBSTRING(v_nome FROM 1 FOR 2))
   )
   ON CONFLICT (id) DO UPDATE SET
-    nome = EXCLUDED.nome,
-    email = EXCLUDED.email,
-    telefone = EXCLUDED.telefone,
-    funcao = EXCLUDED.funcao,
-    naipe = EXCLUDED.naipe,
-    tipo_conta = EXCLUDED.tipo_conta,
-    status_acesso = EXCLUDED.status_acesso,
+    nome = COALESCE(NULLIF(EXCLUDED.nome, ''), perfis.nome),
+    email = COALESCE(NULLIF(EXCLUDED.email, ''), perfis.email),
+    telefone = COALESCE(NULLIF(EXCLUDED.telefone, ''), perfis.telefone),
+    funcao = COALESCE(NULLIF(EXCLUDED.funcao, ''), perfis.funcao),
+    naipe = COALESCE(NULLIF(EXCLUDED.naipe, ''), perfis.naipe),
+    status_acesso = CASE WHEN perfis.status_acesso = 'aprovado' THEN 'aprovado' ELSE EXCLUDED.status_acesso END,
+    igreja_id = COALESCE(perfis.igreja_id, EXCLUDED.igreja_id),
     updated_at = timezone('utc'::text, now());
 
   IF v_tipo_conta = 'lider' AND v_nome_igreja IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE user_id = new.id AND status = 'pendente') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_lideres WHERE user_id = new.id AND status IN ('pendente', 'aprovada')) THEN
       INSERT INTO public.solicitacoes_lideres (
         user_id, nome, email, telefone, nome_igreja, cidade_igreja, status
       ) VALUES (
@@ -182,7 +195,7 @@ BEGIN
   END IF;
 
   IF v_tipo_conta = 'voluntario' AND v_igreja_id IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE user_id = new.id AND status = 'pendente') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.solicitacoes_voluntarios WHERE user_id = new.id AND status IN ('pendente', 'aprovada')) THEN
       INSERT INTO public.solicitacoes_voluntarios (
         user_id, nome, email, telefone, igreja_id, funcao, naipe, status
       ) VALUES (
@@ -195,10 +208,10 @@ BEGIN
 END;
 $$;
 
--- O trigger dispara tanto em novos INSERTs quanto em UPDATEs de metadados de auth.users
+-- O trigger dispara somente em novos cadastros (INSERT), evitando resetar status aprovado ao logar
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
-  AFTER INSERT OR UPDATE ON auth.users
+  AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 4. POLÍTICAS RLS: PERMISSÃO DE INSERÇÃO E ATUALIZAÇÃO

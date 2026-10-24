@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import { CATEGORIAS_MUSICAIS } from '../../constants/categoriasMusicais'
 import './Mais.css'
 
 function Mais() {
   const navigate = useNavigate()
+  const location = useLocation()
   const {
     usuario,
     equipeMembros,
@@ -24,11 +25,20 @@ function Mais() {
     toggleTemaEscuro,
     pedidosTroca,
     totalTrocasPendentes,
-    responderPedidoTroca
+    responderPedidoTroca,
+    igrejas
   } = useAppContext()
 
   const [modalAtivo, setModalAtivo] = useState(null) // 'equipe' | 'trocas' | 'equipamentos' | 'manual' | 'meu_perfil' | 'simulador' | 'sair' | null
   const [abaEquipe, setAbaEquipe] = useState('membros') // 'membros' | 'solicitacoes'
+
+  // Se a rota contiver ?aba=solicitacoes, abre diretamente a modal e aba correspondente
+  useEffect(() => {
+    if (location.search.includes('aba=solicitacoes') || location.search.includes('solicitacoes')) {
+      setModalAtivo('equipe')
+      setAbaEquipe('solicitacoes')
+    }
+  }, [location.search])
 
   // Edição de categoria musical de um membro pelo líder
   const [membroEditando, setMembroEditando] = useState(null)
@@ -41,10 +51,16 @@ function Mais() {
   const [minhaFuncao, setMinhaFuncao] = useState(usuario?.funcao || 'Vocal Líder')
   const [feedbackPerfil, setFeedbackPerfil] = useState(false)
 
-  // Filtro de solicitações pendentes da igreja do líder
-  const solicitacoesPendentesIgreja = solicitacoesVoluntarios.filter(
-    s => s.status === 'pendente' && s.igrejaId === (usuario?.igrejaId || 1)
-  )
+  // Filtro resiliente de solicitações pendentes da igreja do líder (ou todas se Admin)
+  const solicitacoesPendentesIgreja = useMemo(() => {
+    return solicitacoesVoluntarios.filter(s => {
+      if (s.status !== 'pendente') return false
+      if (usuario?.tipoConta === 'admin') return true
+      const idIgrejaLider = Number(usuario?.igrejaId || (igrejas && igrejas.length > 0 ? igrejas[0].id : null))
+      const idIgrejaSol = Number(s.igrejaId || (igrejas && igrejas.length === 1 ? igrejas[0].id : null))
+      return idIgrejaSol === idIgrejaLider || (igrejas && igrejas.length === 1)
+    })
+  }, [solicitacoesVoluntarios, usuario?.tipoConta, usuario?.igrejaId, igrejas])
 
   const pedidoLucas = pedidosTroca[0] || { status: 'pendente' }
   const pedidoRespondido = pedidoLucas.status !== 'pendente'
@@ -264,27 +280,6 @@ function Mais() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
-
-            {/* Painel do Administrador Geral */}
-            <Link to="/admin" className="menu-item-card">
-              <div className="menu-icon-wrapper blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-              </div>
-              <div className="menu-item-info">
-                <div className="menu-item-titulo-row">
-                  <span className="menu-item-titulo">Painel ADMIN Geral</span>
-                  {totalSolicitacoesLideresPendentes > 0 && (
-                    <span className="badge-alerta-menu">{totalSolicitacoesLideresPendentes} pendente(s)</span>
-                  )}
-                </div>
-                <span className="menu-item-sub">Homologação de líderes e congregações</span>
-              </div>
-              <svg className="menu-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </Link>
           </div>
         </section>
 
