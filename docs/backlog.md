@@ -190,6 +190,7 @@
    - **Proteção Estrita de Rota ADMIN (`RotaAdmin`):** [App.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/App.jsx) bloqueia acesso direto à rota `/admin`. Apenas usuários autenticados com `tipo_conta === 'admin'` ou `cargo === 'ADMIN'` podem acessar; não autenticados são enviados para o login e outros papéis para `/`.
    - **Atalho Discreto no Login:** [Login.jsx](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/pages/Login/Login.jsx) inclui botão sutil "Entrar como administrador" que preenche o e-mail do admin e foca o campo de senha.
    - **Validação de Build:** `npm run build` executado com código 0 (zero erros).
+   - **Fallback de Credenciais Públicas (Vercel):** Configurado fallback em [supabase.js](file:///c:/Users/Anderson%20Neres/WEB%20CRIADOS/CruzChurchEscalaLouvor/src/services/supabase.js) para que os builds em produção na Vercel carreguem automaticamente as credenciais públicas do Supabase.
 
 
 

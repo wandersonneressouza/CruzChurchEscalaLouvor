@@ -1,17 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Carrega as credenciais a partir do arquivo .env via Vite (import.meta.env)
+// Carrega as credenciais a partir do arquivo .env via Vite (import.meta.env) ou fallback padrão
 const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL ||
   import.meta.env.SUPABASE_URL ||
-  ''
+  'https://tckpcyempxpjwcyhnquq.supabase.co'
 
 const supabaseAnonKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.SUPABASE_ANON_KEY ||
-  ''
+  'sb_publishable_bVBFJJ9Dfln8MIqMe3FytA_SodcWZSm'
 
 // Verifica se o Supabase está configurado com credenciais válidas
 export const supabaseConfigurado = Boolean(
